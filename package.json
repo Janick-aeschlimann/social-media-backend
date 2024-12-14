@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "main": "app.js",
   "scripts": {
-    "start": "nodemon app"
+    "start": "nodemon server"
   },
   "author": "",
   "license": "ISC",
@@ -15,6 +15,7 @@
     "express": "^4.21.2",
     "jsonwebtoken": "^9.0.2",
     "mysql2": "^3.11.5",
-    "nodemon": "^3.1.7"
+    "nodemon": "^3.1.7",
+    "socket.io": "^4.8.1"
   }
 }
