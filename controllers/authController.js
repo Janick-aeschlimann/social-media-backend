@@ -6,11 +6,11 @@ const bcrypt = require("bcrypt");
 
 const authorization = async (username, password) => {
   const hashedPwd = await db.query(
-    "SELECT passwd FROM users WHERE username = ?",
+    "SELECT password FROM users WHERE username = ?",
     [username]
   );
 
-  if (await bcrypt.compare(password, hashedPwd[0].passwd)) {
+  if (await bcrypt.compare(password, hashedPwd[0].password)) {
     console.log("true");
 
     return true;
@@ -45,8 +45,8 @@ exports.login = async (req, res) => {
 };
 
 exports.register = async (req, res) => {
-  const { username, email, password } = req.body;
-  if (username && email && password) {
+  const { email, username, displayName, birthDate, password } = req.body;
+  if (email && username && displayName && birthDate && password) {
     let result = await db.query(
       "SELECT * FROM users WHERE username = ? OR email = ?",
       [username, email]
@@ -54,15 +54,17 @@ exports.register = async (req, res) => {
     if (!result[0]) {
       let hashedPwd = await bcrypt.hash(password, hashSaltRounds);
       db.insert("users", {
-        username: username,
         email: email,
-        passwd: hashedPwd,
+        username: username,
+        displayName: displayName,
+        birthDate: birthDate,
+        password: hashedPwd,
       });
       res.send("success");
     } else {
       res.send({ error: "user already exists" });
     }
   } else {
-    res.send("err");
+    res.send("please specify email, username, displayName, birthDate (YYYY-MM-DD), password");
   }
 };

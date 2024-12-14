@@ -3,7 +3,6 @@ const mysql = require("mysql2/promise.js");
 const con = mysql.createPool({
   host: "127.0.0.1",
   user: "root",
-  password: "Passwort123.",
   database: "socialMediadb",
 });
 
