@@ -4,7 +4,7 @@ const con = mysql.createPool({
   host: "127.0.0.1",
   user: "root",
   password: "Passwort123.",
-  database: "fullstackdb",
+  database: "socialMediadb",
 });
 
 async function query(query, fields) {
