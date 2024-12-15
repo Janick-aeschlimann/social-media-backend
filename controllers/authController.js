@@ -19,21 +19,22 @@ const authorization = async (username, password) => {
   }
 };
 
-const generateAccessToken = async (username) => {
-  return await jwt.sign(
-    { username: username },
-    process.env.ACCESS_TOKEN_SECRET,
-    {
-      expiresIn: "1d",
-    }
-  );
+const generateAccessToken = async (userId) => {
+  return await jwt.sign({ userId: userId }, process.env.ACCESS_TOKEN_SECRET, {
+    expiresIn: "1d",
+  });
 };
 
 exports.login = async (req, res) => {
   const { username, password } = req.body;
   if (username && password) {
     if (await authorization(username, password)) {
-      const access_token = await generateAccessToken(username);
+      const user = await db.query(
+        "SELECT userId FROM users WHERE username = ?",
+        [username]
+      );
+
+      const access_token = await generateAccessToken(user[0].userId);
 
       res.send({ token: access_token });
     } else {
@@ -65,6 +66,8 @@ exports.register = async (req, res) => {
       res.send({ error: "user already exists" });
     }
   } else {
-    res.send("please specify email, username, displayName, birthDate (YYYY-MM-DD), password");
+    res.send(
+      "please specify email, username, displayName, birthDate (YYYY-MM-DD), password"
+    );
   }
 };
