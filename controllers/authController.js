@@ -69,7 +69,7 @@ exports.register = async (req, res) => {
       });
       res.send("success");
     } else {
-      res.send({ error: "user already exists" });
+      res.status(409).send({ error: "user already exists" });
     }
   }
 };
