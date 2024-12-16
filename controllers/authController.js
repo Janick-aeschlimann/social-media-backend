@@ -66,8 +66,10 @@ exports.register = async (req, res) => {
       res.send({ error: "user already exists" });
     }
   } else {
-    res.send(
-      "please specify email, username, displayName, birthDate (YYYY-MM-DD), password"
-    );
+    res
+      .status(400)
+      .send(
+        "please specify email, username, displayName, birthDate (YYYY-MM-DD), password"
+      );
   }
 };
