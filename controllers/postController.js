@@ -32,7 +32,7 @@ exports.getPosts = async (req, res) => {
     );
     res.send({
       status: "success",
-      response: { totalPages: totalPages, results: posts },
+      response: { totalPages: totalPages, page: page, results: posts },
     });
   } else {
     res.status(400).send({ status: "error", response: "please specify page" });
