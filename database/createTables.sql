@@ -79,4 +79,21 @@ CREATE TABLE
         FOREIGN KEY (livefeedId) REFERENCES livefeeds (livefeedId) ON DELETE CASCADE
     );
 
---INSERT INTO requests (senderId, recieverId) VALUES (2, 1);
+CREATE TABLE
+    medialinks (
+        medialinkId INT PRIMARY KEY AUTO_INCREMENT,
+        source VARCHAR(255) NOT NULL,
+        url VARCHAR(255) NOT NULL,
+        postId INT NOT NULL,
+        FOREIGN KEY (postId) REFERENCES posts (postId) ON DELETE CASCADE
+    );
+
+CREATE TABLE
+    ratings (
+        ratingId INT PRIMARY KEY AUTO_INCREMENT,
+        userId INT NOT NULL,
+        postId INT NOT NULL,
+        rating TINYINT NOT NULL,
+        FOREIGN KEY (userId) REFERENCES users (userId) ON DELETE CASCADE,
+        FOREIGN KEY (postId) REFERENCES posts (postId) ON DELETE CASCADE
+    );

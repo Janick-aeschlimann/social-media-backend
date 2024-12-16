@@ -4,6 +4,7 @@ const con = mysql.createPool({
   host: "127.0.0.1",
   user: "root",
   database: "socialMediadb",
+  password: "Passwort123.",
 });
 
 async function query(query, fields) {
@@ -19,7 +20,7 @@ async function getAll(table) {
 async function insert(table, data) {
   let fields = Object.keys(data);
   let values = Object.values(data);
-  await con.query(
+  return await con.query(
     `INSERT INTO \`${table}\` (\`${fields.join("`, `")}\`) VALUES (${fields
       .map(() => "?")
       .join(", ")});`,

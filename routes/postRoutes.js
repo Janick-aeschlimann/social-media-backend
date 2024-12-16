@@ -27,4 +27,6 @@ router.delete(
   commentController.deleteComment
 );
 
+router.post("/:postId/rate", authMiddleware, postController.ratePost);
+
 module.exports = router;
