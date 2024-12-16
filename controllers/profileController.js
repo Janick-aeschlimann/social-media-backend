@@ -3,8 +3,9 @@ const db = require("../db");
 exports.getProfiles = async (req, res) => {
   const users = await db.getAll("users");
   const userId = req.user.userId;
-  res.send(
-    await Promise.all(
+  res.send({
+    status: "success",
+    response: await Promise.all(
       users.map(async (user) => {
         const friends = await db.query(
           "SELECT * FROM friends WHERE (user1Id = ? AND user2Id = ?) OR (user1Id = ? AND user2Id = ?)",
@@ -22,8 +23,8 @@ exports.getProfiles = async (req, res) => {
           isFriend: isFriend,
         };
       })
-    )
-  );
+    ),
+  });
 };
 
 exports.getProfile = async (req, res) => {
@@ -44,14 +45,17 @@ exports.getProfile = async (req, res) => {
       isFriend = true;
     }
     res.send({
-      userId: user.userId,
-      email: user.email,
-      username: user.username,
-      displayName: user.displayName,
-      isFriend: isFriend,
+      status: "success",
+      response: {
+        userId: user.userId,
+        email: user.email,
+        username: user.username,
+        displayName: user.displayName,
+        isFriend: isFriend,
+      },
     });
   } else {
-    res.status(404).send("user not found");
+    res.status(404).send({ status: "error", response: "user not found" });
   }
 };
 
@@ -62,10 +66,13 @@ exports.getOwnProfile = async (req, res) => {
     userId,
   ]);
   res.send({
-    userId: users[0].userId,
-    email: users[0].email,
-    username: users[0].username,
-    displayName: users[0].displayName,
+    status: "success",
+    response: {
+      userId: users[0].userId,
+      email: users[0].email,
+      username: users[0].username,
+      displayName: users[0].displayName,
+    },
   });
 };
 
@@ -80,15 +87,19 @@ exports.editProfile = async (req, res) => {
       [email, userId]
     );
     if (response[0]) {
-      res.status(409).send("email already in use");
+      res
+        .status(409)
+        .send({ status: "error", response: "email already in use" });
     } else {
       await db.query(
         "UPDATE users SET displayName = ?, email = ? WHERE userId = ?",
         [displayName, email, userId]
       );
-      res.send("success");
+      res.send({ status: "success" });
     }
   } else {
-    res.status(400).send("please specify displayName, email");
+    res
+      .status(400)
+      .send({ status: "error", response: "please specify displayName, email" });
   }
 };

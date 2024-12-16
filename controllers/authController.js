@@ -32,7 +32,10 @@ const generateAccessToken = async (userId) => {
 exports.login = async (req, res) => {
   const { username, password } = req.body;
   if (!username || !password) {
-    res.status(400).send("no username or password given");
+    res.status(400).send({
+      status: "error",
+      response: "username or password not specified",
+    });
   } else {
     if (await authorization(username, password)) {
       const user = await db.query(
@@ -42,9 +45,12 @@ exports.login = async (req, res) => {
 
       const access_token = await generateAccessToken(user[0].userId);
 
-      res.send({ token: access_token });
+      res.send({ status: "success", token: access_token });
     } else {
-      res.status(401).send("wrong password or username");
+      res.status(401).send({
+        status: "error",
+        response: "username and password combination doesnt match",
+      });
     }
   }
 };
@@ -52,11 +58,11 @@ exports.login = async (req, res) => {
 exports.register = async (req, res) => {
   const { email, username, displayName, birthDate, password } = req.body;
   if (!email || !username || !displayName || !birthDate || !password) {
-    res
-      .status(400)
-      .send(
-        "please specify email, username, displayName, birthDate (YYYY-MM-DD), password"
-      );
+    res.status(400).send({
+      status: "error",
+      response:
+        "please specify email, username, displayName, birthDate (YYYY-MM-DD), password",
+    });
   } else {
     let result = await db.query(
       "SELECT * FROM users WHERE username = ? OR email = ?",
@@ -71,9 +77,11 @@ exports.register = async (req, res) => {
         birthDate: birthDate,
         password: hashedPwd,
       });
-      res.send("success");
+      res.send({ status: "success" });
     } else {
-      res.status(409).send({ error: "user already exists" });
+      res
+        .status(409)
+        .send({ status: "error", response: "user already exists" });
     }
   }
 };

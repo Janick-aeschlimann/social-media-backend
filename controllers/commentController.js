@@ -1,3 +1,4 @@
+const { response } = require("../app");
 const db = require("../db");
 
 exports.getComments = async (req, res) => {
@@ -5,7 +6,7 @@ exports.getComments = async (req, res) => {
   const comments = await db.query("SELECT * FROM comments WHERE postId = ?", [
     postId,
   ]);
-  res.send(comments);
+  res.send({ status: "success", response: comments });
 };
 
 exports.createComment = async (req, res) => {
@@ -17,9 +18,11 @@ exports.createComment = async (req, res) => {
       postId: postId,
       comment: comment,
     });
-    res.send("success");
+    res.send({ status: "success" });
   } else {
-    res.status(400).send("please specify comment");
+    res
+      .status(400)
+      .send({ status: "error", response: "please specify comment" });
   }
 };
 
@@ -38,15 +41,17 @@ exports.editComment = async (req, res) => {
           comment,
           commentId,
         ]);
-        res.send("success");
+        res.send({ status: "success" });
       } else {
-        res.status(403).send("Forbidden");
+        res.status(403).send({ status: "error", response: "Forbidden" });
       }
     } else {
-      res.status(404).send("comment not found");
+      res.status(404).send({ status: "error", response: "comment not found" });
     }
   } else {
-    res.status(400).send("please specify comment");
+    res
+      .status(400)
+      .send({ status: "error", response: "please specify comment" });
   }
 };
 
@@ -60,11 +65,11 @@ exports.deleteComment = async (req, res) => {
   if (comments[0]) {
     if (comments[0].userId == req.user.userId) {
       await db.query("DELETE FROM comments WHERE commentId = ?", [commentId]);
-      res.send("success");
+      res.send({ status: "success" });
     } else {
-      res.status(403).send("Forbidden");
+      res.status(403).send({ status: "error", response: "Forbidden" });
     }
   } else {
-    res.status(404).send("comment not found");
+    res.status(404).send({ status: "error", response: "comment not found" });
   }
 };

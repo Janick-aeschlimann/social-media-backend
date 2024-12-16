@@ -27,9 +27,9 @@ exports.getPosts = async (req, res) => {
         };
       })
     );
-    res.send(posts);
+    res.send({ status: "success", response: posts });
   } else {
-    res.status(400).send("please specify page");
+    res.status(400).send({ status: "error", response: "please specify page" });
   }
 };
 
@@ -49,17 +49,20 @@ exports.getPost = async (req, res) => {
       post.userId,
     ]);
     res.send({
-      postId: post.postId,
-      user: {
-        userId: user[0].userId,
-        username: user[0].username,
-        displayName: user[0].displayName,
+      status: "success",
+      response: {
+        postId: post.postId,
+        user: {
+          userId: user[0].userId,
+          username: user[0].username,
+          displayName: user[0].displayName,
+        },
+        content: post.content,
+        medialinks: medialinks,
       },
-      content: post.content,
-      medialinks: medialinks,
     });
   } else {
-    res.status(404).send("post not found");
+    res.status(404).send({ status: "error", response: "post not found" });
   }
 };
 
@@ -81,10 +84,12 @@ exports.createPost = async (req, res) => {
           });
         });
       }
-      res.send("success");
+      res.send({ status: "success" });
     }
   } else {
-    res.status(400).send("please specify content");
+    res
+      .status(400)
+      .send({ status: "error", response: "please specify content" });
   }
 };
 
@@ -102,15 +107,17 @@ exports.editPost = async (req, res) => {
           content,
           postId,
         ]);
-        res.send("success");
+        res.send({ status: "success" });
       } else {
-        res.status(403).send("Forbidden");
+        res.status(403).send({ status: "error", response: "Forbidden" });
       }
     } else {
-      res.status(404).send("post not found");
+      res.status(404).send({ status: "error", response: "post not found" });
     }
   } else {
-    res.status(400).send("please specify content");
+    res
+      .status(400)
+      .send({ status: "error", response: "please specify content" });
   }
 };
 
@@ -123,12 +130,12 @@ exports.deletePost = async (req, res) => {
   if (posts[0]) {
     if (posts[0].userId == req.user.userId) {
       db.query("DELETE FROM posts WHERE postId = ?", [postId]);
-      res.send("success");
+      res.send({ status: "success" });
     } else {
-      res.status(403).send("Forbidden");
+      res.status(403).send({ status: "error", response: "Forbidden" });
     }
   } else {
-    res.status(404).send("post not found");
+    res.status(404).send({ status: "error", response: "post not found" });
   }
 };
 
@@ -149,14 +156,14 @@ exports.ratePost = async (req, res) => {
       userId,
       postId
     );
-    res.send("success");
+    res.send({ status: "success" });
   } else {
     await db.insert("ratings", {
       userId: userId,
       postId: postId,
       rating: isPositive ? 1 : 0,
     });
-    res.send("success");
+    res.send({ status: "success" });
   }
 };
 
@@ -174,8 +181,8 @@ exports.deleteRating = async (req, res) => {
       userId,
       postId,
     ]);
-    res.send("success");
+    res.send({ status: "success" });
   } else {
-    res.status(404).send("rating not found");
+    res.status(404).send({ status: "error", response: "rating not found" });
   }
 };

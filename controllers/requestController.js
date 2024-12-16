@@ -21,7 +21,7 @@ exports.getRequests = async (req, res) => {
     return { userId: request.userId, type: "incoming" };
   });
 
-  res.send(outgoing.concat(incoming));
+  res.send({ status: "success", response: outgoing.concat(incoming) });
 };
 
 exports.sendRequest = async (req, res) => {
@@ -39,24 +39,29 @@ exports.sendRequest = async (req, res) => {
         [userId, recieverId, recieverId, userId]
       );
       if (friends[0]) {
-        res.status(409).send("already friends");
+        res.status(409).send({ status: "error", response: "already friends" });
       } else {
         const requests = await db.query(
           "SELECT * FROM requests WHERE (senderId = ? AND recieverId = ?) OR (senderId = ? AND recieverId = ?)",
           [userId, recieverId, recieverId, userId]
         );
         if (requests[0]) {
-          res.status(409).send("already requested");
+          res
+            .status(409)
+            .send({ status: "error", response: "already requested" });
         } else {
           db.insert("requests", { senderId: userId, recieverId: recieverId });
-          res.send("success");
+          res.send({ status: "success" });
         }
       }
     } else {
-      res.status(404).send("user not found");
+      res.status(404).send({ status: "error", response: "user not found" });
     }
   } else {
-    res.status(409).send("cannot send friend request to yourself");
+    res.status(409).send({
+      status: "error",
+      response: "cannot send friend request to yourself",
+    });
   }
 };
 
@@ -79,15 +84,22 @@ exports.acceptRequest = async (req, res) => {
           requests[0].requestId,
         ]);
         db.insert("friends", { user1Id: senderId, user2Id: userId });
-        res.send("success");
+        res.send({ status: "success" });
       } else {
-        res.status(404).send("request not found");
+        res
+          .status(404)
+          .send({ status: "error", response: "request not found" });
       }
     } else {
-      res.status(404).send("user not found");
+      res.status(404).send({ status: "error", response: "user not found" });
     }
   } else {
-    res.status(409).send("cannot send accepüt request from yourself");
+    res
+      .status(409)
+      .send({
+        status: "error",
+        response: "cannot send accepüt request from yourself",
+      });
   }
 };
 
@@ -109,14 +121,21 @@ exports.cancelRequest = async (req, res) => {
         db.query("DELETE FROM requests WHERE requestId = ?", [
           requests[0].requestId,
         ]);
-        res.send("success");
+        res.send({ status: "success" });
       } else {
-        res.status(404).send("request not found");
+        res
+          .status(404)
+          .send({ status: "error", response: "request not found" });
       }
     } else {
-      res.status(404).send("user not found");
+      res.status(404).send({ status: "error", response: "user not found" });
     }
   } else {
-    res.status(409).send("cannot send accepüt request from yourself");
+    res
+      .status(409)
+      .send({
+        status: "error",
+        response: "cannot send accepüt request from yourself",
+      });
   }
 };

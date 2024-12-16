@@ -21,7 +21,7 @@ exports.getLivefeeds = async (req, res) => {
     })
   );
 
-  res.send(livefeeds);
+  res.send({ status: "success", response: livefeeds });
 };
 
 exports.getLivefeed = async (req, res) => {
@@ -39,16 +39,19 @@ exports.getLivefeed = async (req, res) => {
       [livefeed.livefeedId]
     );
     res.send({
-      livefeedId: livefeed.livefeedId,
-      userId: livefeed.userId,
-      name: livefeed.name,
-      description: livefeed.description,
-      age_restriction: livefeed.age_restriction,
-      cooldown: livefeed.cooldown,
-      follower: follower[0].follower,
+      status: "success",
+      response: {
+        livefeedId: livefeed.livefeedId,
+        userId: livefeed.userId,
+        name: livefeed.name,
+        description: livefeed.description,
+        age_restriction: livefeed.age_restriction,
+        cooldown: livefeed.cooldown,
+        follower: follower[0].follower,
+      },
     });
   } else {
-    res.status(404).send("livefeed not found");
+    res.status(404).send({ status: "error", response: "livefeed not found" });
   }
 };
 
@@ -63,11 +66,12 @@ exports.createLivefeed = async (req, res) => {
       age_restriction: age_restriction,
       cooldown: cooldown,
     });
-    res.send("success");
+    res.send({ status: "success" });
   } else {
-    res
-      .status(400)
-      .send("please specify name, description, age_restriction, cooldown");
+    res.status(400).send({
+      status: "error",
+      response: "please specify name, description, age_restriction, cooldown",
+    });
   }
 };
 
@@ -88,17 +92,18 @@ exports.editLivefeed = async (req, res) => {
           "UPDATE livefeeds SET name = ?, description = ?, age_restriction = ?, cooldown = ? WHERE livefeedId = ?",
           [name, description, age_restriction, cooldown, livefeedId]
         );
-        res.send("success");
+        res.send({ status: "success" });
       } else {
-        res.status(403).send("Forbidden");
+        res.status(403).send({ status: "error", response: "Forbidden" });
       }
     } else {
-      res.status(404).send("livefeed not found");
+      res.status(404).send({ status: "error", response: "livefeed not found" });
     }
   } else {
-    res
-      .status(400)
-      .send("please specify name, description, age_restriction, cooldown");
+    res.status(400).send({
+      status: "error",
+      response: "please specify name, description, age_restriction, cooldown",
+    });
   }
 };
 
@@ -114,12 +119,12 @@ exports.deleteLivefeed = async (req, res) => {
   if (livefeeds[0]) {
     if (livefeeds[0].userId == userId) {
       db.query("DELETE FROM livefeeds WHERE livefeedId = ?", [livefeedId]);
-      res.send("success");
+      res.send({ status: "success" });
     } else {
-      res.status(403).send("Forbidden");
+      res.status(403).send({ status: "error", response: "Forbidden" });
     }
   } else {
-    res.status(404).send("livefeed not found");
+    res.status(404).send({ status: "error", response: "livefeed not found" });
   }
 };
 
@@ -138,13 +143,13 @@ exports.follow = async (req, res) => {
       [userId, livefeedId]
     );
     if (follows[0]) {
-      res.status(409).send("already following");
+      res.status(409).send({ status: "error", response: "already following" });
     } else {
       db.insert("follower", { userId: userId, livefeedId: livefeedId });
-      res.send("success");
+      res.send({ status: "success" });
     }
   } else {
-    res.status(404).send("livefeed not found");
+    res.status(404).send({ status: "error", response: "livefeed not found" });
   }
 };
 
@@ -166,11 +171,11 @@ exports.unfollow = async (req, res) => {
       db.query("DELETE FROM follower WHERE followerId = ?", [
         follows[0].followerId,
       ]);
-      res.send("success");
+      res.send({ status: "success" });
     } else {
-      res.status(404).send("not following");
+      res.status(404).send({ status: "error", response: "not following" });
     }
   } else {
-    res.status(404).send("livefeed not found");
+    res.status(404).send({ status: "error", response: "livefeed not found" });
   }
 };

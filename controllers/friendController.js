@@ -19,14 +19,15 @@ exports.getFriends = async (req, res) => {
 
   console.log(friends);
 
-  res.send(
-    friends.map((user) => ({
+  res.send({
+    status: "success",
+    response: friends.map((user) => ({
       userId: user.userId,
       email: user.email,
       username: user.username,
       displayName: user.displayName,
-    }))
-  );
+    })),
+  });
 };
 
 exports.deleteFriend = async (req, res) => {
@@ -42,8 +43,8 @@ exports.deleteFriend = async (req, res) => {
     await db.query("DELETE FROM friends WHERE friendId = ?", [
       friends[0].friendId,
     ]);
-    res.send("success");
+    res.send({ status: "success" });
   } else {
-    res.status(404).send("friend not found");
+    res.status(404).send({ status: "error", response: "friend not found" });
   }
 };
