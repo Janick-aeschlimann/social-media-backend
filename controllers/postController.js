@@ -1,10 +1,10 @@
 const db = require("../db");
 
 exports.getPosts = async (req, res) => {
+  const page = req.params.page;
   var posts = await db.query("SELECT * FROM posts LIMIT 10 OFFSET ?", [
     page * 10,
   ]);
-  const page = req.params.page;
   if (page) {
     posts = await Promise.all(
       posts.map(async (post) => {

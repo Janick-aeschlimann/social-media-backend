@@ -4,7 +4,7 @@ const postController = require("../controllers/postController");
 const commentController = require("../controllers/commentController");
 const { authMiddleware } = require("../middleware/authMiddleware");
 
-router.get("/", authMiddleware, postController.getPosts);
+router.get("/page/:page", authMiddleware, postController.getPosts);
 router.post("/", authMiddleware, postController.createPost);
 router.get("/:postId", authMiddleware, postController.getPost);
 router.put("/:postId", authMiddleware, postController.editPost);

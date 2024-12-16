@@ -10,10 +10,14 @@ const authorization = async (username, password) => {
     [username]
   );
 
-  if (await bcrypt.compare(password, hashedPwd[0].password)) {
-    console.log("true");
+  if (hashedPwd[0]) {
+    if (await bcrypt.compare(password, hashedPwd[0].password)) {
+      console.log("true");
 
-    return true;
+      return true;
+    } else {
+      return false;
+    }
   } else {
     return false;
   }
@@ -27,7 +31,9 @@ const generateAccessToken = async (userId) => {
 
 exports.login = async (req, res) => {
   const { username, password } = req.body;
-  if (username && password) {
+  if (!username || !password) {
+    res.status(400).send("no username or password given");
+  } else {
     if (await authorization(username, password)) {
       const user = await db.query(
         "SELECT userId FROM users WHERE username = ?",
@@ -40,8 +46,6 @@ exports.login = async (req, res) => {
     } else {
       res.status(401).send("wrong password or username");
     }
-  } else {
-    res.status(400).send("no username or password given");
   }
 };
 
