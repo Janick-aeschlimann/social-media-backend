@@ -1,7 +1,15 @@
 const express = require("express");
 const app = express();
+const cors = require("cors");
 
 app.use(express.json());
+
+app.use(
+  cors({
+    origin: "*", // Allow all origins
+    credentials: true, // Allow credentials (cookies, headers)
+  })
+);
 
 // Routers
 const authRoutes = require("./routes/authRoutes.js");
