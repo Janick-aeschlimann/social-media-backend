@@ -103,3 +103,190 @@ exports.editProfile = async (req, res) => {
       .send({ status: "error", response: "please specify displayName, email" });
   }
 };
+
+exports.getPostsFromUser = async (req, res) => {
+  const userId = req.params.userId;
+  const page = req.params.page;
+
+  var posts = await db.query(
+    "SELECT * FROM posts WHERE userId = ? LIMIT 10 OFFSET ?",
+    [userId, page * 10]
+  );
+  const total = await db.query(
+    "SELECT COUNT(postId) as count FROM posts WHERE userId = ?",
+    [userId]
+  );
+  const totalPages = Math.ceil(total[0].count / 10);
+
+  if (page) {
+    posts = await Promise.all(
+      posts.map(async (post) => {
+        const medialinks = await db.query(
+          "SELECT * FROM medialinks WHERE postId = ?",
+          [post.postId]
+        );
+        const user = await db.query("SELECT * FROM users WHERE userId = ?", [
+          post.userId,
+        ]);
+        return {
+          postId: post.postId,
+          user: {
+            userId: user[0].userId,
+            username: user[0].username,
+            displayName: user[0].displayName,
+          },
+          content: post.content,
+          medialinks: medialinks,
+        };
+      })
+    );
+    res.send({
+      status: "success",
+      response: { totalPages: totalPages, page: Number(page), results: posts },
+    });
+  } else {
+    res.status(400).send({ status: "error", response: "please specify page" });
+  }
+};
+
+exports.getLikesFromUser = async (req, res) => {
+  const userId = req.params.userId;
+  const page = req.params.page;
+
+  var likes = await db.query("SELECT postId FROM ratings WHERE userId = ?", [
+    userId,
+  ]);
+
+  const total = await db.query(
+    "SELECT COUNT(postId) as count FROM ratings WHERE userId = ?",
+    [userId]
+  );
+
+  const totalPages = Math.ceil(total[0].count / 10);
+
+  console.log(likes);
+
+  if (page) {
+    if (likes[0]) {
+      likes = await Promise.all(
+        likes.map(async (like) => {
+          const postResponse = await db.query(
+            "SELECT * FROM posts WHERE postId = ?",
+            [like.postId]
+          );
+          const post = postResponse[0];
+          const medialinks = await db.query(
+            "SELECT * FROM medialinks WHERE postId = ?",
+            [post.postId]
+          );
+          const user = await db.query("SELECT * FROM users WHERE userId = ?", [
+            post.userId,
+          ]);
+
+          console.log(user);
+
+          return {
+            postId: post.postId,
+            user: {
+              userId: user[0].userId,
+              username: user[0].username,
+              displayName: user[0].displayName,
+            },
+            content: post.content,
+            medialinks: medialinks,
+          };
+        })
+      );
+      res.send({
+        status: "success",
+        response: {
+          totalPages: totalPages,
+          page: Number(page),
+          results: likes,
+        },
+      });
+    } else {
+      res.send({
+        status: "success",
+        response: {
+          totalPages: 0,
+          page: 0,
+          results: [],
+        },
+      });
+    }
+  } else {
+    res.status(400).send({ status: "error", response: "please specify page" });
+  }
+};
+
+exports.getSavesFromUser = async (req, res) => {
+  const userId = req.params.userId;
+  const page = req.params.page;
+
+  var saves = await db.query("SELECT postId FROM saves WHERE userId = ?", [
+    userId,
+  ]);
+
+  const total = await db.query(
+    "SELECT COUNT(postId) as count FROM saves WHERE userId = ?",
+    [userId]
+  );
+
+  const totalPages = Math.ceil(total[0].count / 10);
+
+  console.log(saves);
+
+  if (page) {
+    if (saves[0]) {
+      saves = await Promise.all(
+        saves.map(async (like) => {
+          const postResponse = await db.query(
+            "SELECT * FROM posts WHERE postId = ?",
+            [like.postId]
+          );
+          const post = postResponse[0];
+          const medialinks = await db.query(
+            "SELECT * FROM medialinks WHERE postId = ?",
+            [post.postId]
+          );
+          const user = await db.query("SELECT * FROM users WHERE userId = ?", [
+            post.userId,
+          ]);
+
+          console.log(user);
+
+          return {
+            postId: post.postId,
+            user: {
+              userId: user[0].userId,
+              username: user[0].username,
+              displayName: user[0].displayName,
+            },
+            content: post.content,
+            medialinks: medialinks,
+          };
+        })
+      );
+      res.send({
+        status: "success",
+        response: {
+          totalPages: totalPages,
+          page: Number(page),
+          results: saves,
+        },
+      });
+    } else {
+      res.send({
+        status: "success",
+        response: {
+          totalPages: 0,
+          page: 0,
+          results: [],
+        },
+      });
+    }
+  } else {
+    res.status(400).send({ status: "error", response: "please specify page" });
+  }
+};

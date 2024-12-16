@@ -106,4 +106,13 @@ CREATE TABLE
         rating TINYINT NOT NULL,
         FOREIGN KEY (userId) REFERENCES users (userId) ON DELETE CASCADE,
         FOREIGN KEY (postId) REFERENCES posts (postId) ON DELETE CASCADE
-    )
+    );
+
+CREATE TABLE
+    saves (
+        saveId INT PRIMARY KEY AUTO_INCREMENT,
+        userId INT NOT NULL,
+        postId INT NOT NULL,
+        FOREIGN KEY (userId) REFERENCES users (userId) ON DELETE CASCADE,
+        FOREIGN KEY (postId) REFERENCES posts (postId) ON DELETE CASCADE
+    );
