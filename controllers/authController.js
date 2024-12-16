@@ -47,7 +47,13 @@ exports.login = async (req, res) => {
 
 exports.register = async (req, res) => {
   const { email, username, displayName, birthDate, password } = req.body;
-  if ((email, username, displayName, birthDate, password) != undefined) {
+  if (!email || !username || !displayName || !birthDate || !password) {
+    res
+      .status(400)
+      .send(
+        "please specify email, username, displayName, birthDate (YYYY-MM-DD), password"
+      );
+  } else {
     let result = await db.query(
       "SELECT * FROM users WHERE username = ? OR email = ?",
       [username, email]
@@ -65,11 +71,5 @@ exports.register = async (req, res) => {
     } else {
       res.send({ error: "user already exists" });
     }
-  } else {
-    res
-      .status(400)
-      .send(
-        "please specify email, username, displayName, birthDate (YYYY-MM-DD), password"
-      );
   }
 };
