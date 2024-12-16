@@ -1,29 +1,36 @@
 const db = require("../db");
 
 exports.getPosts = async (req, res) => {
-  var posts = await db.getAll("posts");
-  posts = await Promise.all(
-    posts.map(async (post) => {
-      const medialinks = await db.query(
-        "SELECT * FROM medialinks WHERE postId = ?",
-        [post.postId]
-      );
-      const user = await db.query("SELECT * FROM users WHERE userId = ?", [
-        post.userId,
-      ]);
-      return {
-        postId: post.postId,
-        user: {
-          userId: user[0].userId,
-          username: user[0].username,
-          displayName: user[0].displayName,
-        },
-        content: post.content,
-        medialinks: medialinks,
-      };
-    })
-  );
-  res.send(posts);
+  var posts = await db.query("SELECT * FROM posts LIMIT 10 OFFSET ?", [
+    page * 10,
+  ]);
+  const page = req.params.page;
+  if (page) {
+    posts = await Promise.all(
+      posts.map(async (post) => {
+        const medialinks = await db.query(
+          "SELECT * FROM medialinks WHERE postId = ? ",
+          [post.postId]
+        );
+        const user = await db.query("SELECT * FROM users WHERE userId = ?", [
+          post.userId,
+        ]);
+        return {
+          postId: post.postId,
+          user: {
+            userId: user[0].userId,
+            username: user[0].username,
+            displayName: user[0].displayName,
+          },
+          content: post.content,
+          medialinks: medialinks,
+        };
+      })
+    );
+    res.send(posts);
+  } else {
+    res.status(400).send("please specify page");
+  }
 };
 
 exports.getPost = async (req, res) => {

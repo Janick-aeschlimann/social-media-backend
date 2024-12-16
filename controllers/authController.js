@@ -47,7 +47,7 @@ exports.login = async (req, res) => {
 
 exports.register = async (req, res) => {
   const { email, username, displayName, birthDate, password } = req.body;
-  if (email && username && displayName && birthDate && password) {
+  if ((email, username, displayName, birthDate, password) != undefined) {
     let result = await db.query(
       "SELECT * FROM users WHERE username = ? OR email = ?",
       [username, email]
