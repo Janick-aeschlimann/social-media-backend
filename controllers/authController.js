@@ -38,10 +38,10 @@ exports.login = async (req, res) => {
 
       res.send({ token: access_token });
     } else {
-      res.send("wrong password or username");
+      res.status(401).send("wrong password or username");
     }
   } else {
-    res.send("no username or password given");
+    res.status(400).send("no username or password given");
   }
 };
 
