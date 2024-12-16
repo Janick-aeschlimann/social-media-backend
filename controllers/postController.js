@@ -5,11 +5,14 @@ exports.getPosts = async (req, res) => {
   var posts = await db.query("SELECT * FROM posts LIMIT 10 OFFSET ?", [
     page * 10,
   ]);
+  const total = await db.query("SELECT COUNT(postId) as count FROM posts");
+  const totalPages = Math.ceil(total[0].count / 10);
+
   if (page) {
     posts = await Promise.all(
       posts.map(async (post) => {
         const medialinks = await db.query(
-          "SELECT * FROM medialinks WHERE postId = ? ",
+          "SELECT * FROM medialinks WHERE postId = ?",
           [post.postId]
         );
         const user = await db.query("SELECT * FROM users WHERE userId = ?", [
@@ -27,7 +30,10 @@ exports.getPosts = async (req, res) => {
         };
       })
     );
-    res.send({ status: "success", response: posts });
+    res.send({
+      status: "success",
+      response: { totalPages: totalPages, results: posts },
+    });
   } else {
     res.status(400).send({ status: "error", response: "please specify page" });
   }
