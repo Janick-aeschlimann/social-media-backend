@@ -28,5 +28,6 @@ router.delete(
 );
 
 router.post("/:postId/rate", authMiddleware, postController.ratePost);
+router.delete("/:postId/rate", authMiddleware, postController.deleteRating);
 
 module.exports = router;

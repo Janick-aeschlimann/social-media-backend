@@ -152,3 +152,23 @@ exports.ratePost = async (req, res) => {
     res.send("success");
   }
 };
+
+exports.deleteRating = async (req, res) => {
+  const postId = req.params.postId;
+  const userId = req.user.userId;
+
+  const ratings = await db.query(
+    "SELECT * FROM ratings WHERE userId = ? AND postId = ?",
+    [userId, postId]
+  );
+
+  if (ratings[0]) {
+    await db.query("DELETE FROM ratings WHERE userId = ? AND postId = ?", [
+      userId,
+      postId,
+    ]);
+    res.send("success");
+  } else {
+    res.status(404).send("rating not found");
+  }
+};
