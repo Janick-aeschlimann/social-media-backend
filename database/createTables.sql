@@ -97,3 +97,13 @@ CREATE TABLE
         FOREIGN KEY (userId) REFERENCES users (userId) ON DELETE CASCADE,
         FOREIGN KEY (postId) REFERENCES posts (postId) ON DELETE CASCADE
     );
+
+CREATE TABLE
+    activeUsers (
+        ratingId INT PRIMARY KEY AUTO_INCREMENT,
+        userId INT NOT NULL,
+        postId INT NOT NULL,
+        rating TINYINT NOT NULL,
+        FOREIGN KEY (userId) REFERENCES users (userId) ON DELETE CASCADE,
+        FOREIGN KEY (postId) REFERENCES posts (postId) ON DELETE CASCADE
+    )

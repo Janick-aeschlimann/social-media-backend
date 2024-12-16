@@ -7,14 +7,14 @@ const port = 3000;
 const server = http.createServer(app);
 
 const io = new Server(server, {
-    cors: {
-        origin: "*",
-        credentials: true,
-      }
+  cors: {
+    origin: "http://localhost:5173",
+    credentials: true,
+  },
 });
 
-require("./sockets/chatSocket")(io);
+require("./sockets/sockets")(io);
 
 server.listen(port, () => {
-    console.log(`Server is listening on Port: ${port}`)
-})
+  console.log(`Server is listening on Port: ${port}`);
+});
