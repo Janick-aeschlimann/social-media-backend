@@ -6,21 +6,23 @@ exports.getComments = async (req, res) => {
   const comments = await db.query("SELECT * FROM comments WHERE postId = ?", [
     postId,
   ]);
-  const response = comments.map(async (comment) => {
-    const user = await db.query("SELECT * FROM users WHERE userId = ?", [
-      comment.userId,
-    ]);
-    return {
-      commentId: comment.commentId,
-      user: {
-        userId: user[0].userId,
-        username: user[0].username,
-        displayName: user[0].displayName,
-      },
-      postId: comment.postId,
-      comment: comment.comment,
-    };
-  });
+  const response = await Promise.all(
+    comments.map(async (comment) => {
+      const user = await db.query("SELECT * FROM users WHERE userId = ?", [
+        comment.userId,
+      ]);
+      return {
+        commentId: comment.commentId,
+        user: {
+          userId: user[0].userId,
+          username: user[0].username,
+          displayName: user[0].displayName,
+        },
+        postId: comment.postId,
+        comment: comment.comment,
+      };
+    })
+  );
   res.send({ status: "success", response: response });
 };
 
