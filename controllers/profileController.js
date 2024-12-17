@@ -63,9 +63,6 @@ exports.getProfile = async (req, res) => {
       [userId, user.userId]
     );
 
-    console.log(requestsOutgoing);
-    console.log(requestsIncoming);
-
     var isFriend = false;
     if (friends[0]) {
       isFriend = true;
