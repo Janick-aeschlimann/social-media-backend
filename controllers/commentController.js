@@ -21,7 +21,7 @@ exports.getComments = async (req, res) => {
       comment: comment.comment,
     };
   });
-  res.send({ status: "success", response: comments });
+  res.send({ status: "success", response: response });
 };
 
 exports.createComment = async (req, res) => {
