@@ -235,3 +235,40 @@ exports.deleteRating = async (req, res) => {
     res.status(404).send({ status: "error", response: "rating not found" });
   }
 };
+
+exports.savePost = async (req, res) => {
+  const userId = req.user.userId;
+  const postId = req.params.postId;
+
+  const saves = await db.query(
+    "SELECT * FROM saves WHERE userId = ? AND postId = ?",
+    [userId, postId]
+  );
+
+  if (saves[0]) {
+    res.status(409).send({ status: "error", response: "post already saved" });
+  } else {
+    await db.insert("saves", { userId: userId, postId: postId });
+    res.send({ status: "success" });
+  }
+};
+
+exports.unsavePost = async (req, res) => {
+  const userId = req.user.userId;
+  const postId = req.params.postId;
+
+  const saves = await db.query(
+    "SELECT * FROM saves WHERE userId = ? AND postId = ?",
+    [userId, postId]
+  );
+
+  if (saves[0]) {
+    await db.query("DELETE FROM saves WHERE userId = ? AND postId = ?", [
+      userId,
+      postId,
+    ]);
+    res.send({ status: "success" });
+  } else {
+    res.status(404).send({ status: "error", response: "post not saved" });
+  }
+};
