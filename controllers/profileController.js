@@ -1,3 +1,4 @@
+const { request } = require("../app");
 const db = require("../db");
 
 exports.getProfiles = async (req, res) => {
@@ -11,6 +12,14 @@ exports.getProfiles = async (req, res) => {
           "SELECT * FROM friends WHERE (user1Id = ? AND user2Id = ?) OR (user1Id = ? AND user2Id = ?)",
           [userId, user.userId, user.userId, userId]
         );
+        const requestsIncoming = await db.query(
+          "SELECT * FROM requests WHERE (senderId = ? AND recieverId = ?)",
+          [user.userId, userId]
+        );
+        const requestsOutgoing = await db.query(
+          "SELECT * FROM requests WHERE (senderId = ? AND recieverId = ?)",
+          [userId, user.userId]
+        );
         var isFriend = false;
         if (friends[0]) {
           isFriend = true;
@@ -22,6 +31,8 @@ exports.getProfiles = async (req, res) => {
           displayName: user.displayName,
           isFriend: isFriend,
           isOwn: userId == user.userId,
+          requestOutgoing: requestsOutgoing[0] ? true : false,
+          requestIncoming: requestsIncoming[0] ? true : false,
         };
       })
     ),
@@ -34,6 +45,15 @@ exports.getProfile = async (req, res) => {
   const users = await db.query("SELECT * FROM users WHERE userId = ?", [
     userId,
   ]);
+
+  const requestsIncoming = await db.query(
+    "SELECT * FROM requests WHERE (senderId = ? AND recieverId = ?)",
+    [user.userId, userId]
+  );
+  const requestsOutgoing = await db.query(
+    "SELECT * FROM requests WHERE (senderId = ? AND recieverId = ?)",
+    [userId, user.userId]
+  );
 
   if (users[0]) {
     const user = users[0];
@@ -54,6 +74,8 @@ exports.getProfile = async (req, res) => {
         displayName: user.displayName,
         isFriend: isFriend,
         isOwn: req.user.userId == user.userId,
+        requestOutgoing: requestsOutgoing[0] ? true : false,
+        requestIncoming: requestsIncoming[0] ? true : false,
       },
     });
   } else {
