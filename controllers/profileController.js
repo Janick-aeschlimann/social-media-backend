@@ -316,3 +316,49 @@ exports.getSavesFromUser = async (req, res) => {
     res.status(400).send({ status: "error", response: "please specify page" });
   }
 };
+
+exports.searchProfiles = async (req, res) => {
+  const query = req.params.query;
+
+  const friends = await db.query(
+    "SELECT * FROM friends WHERE user1Id = ? OR user2Id = ?",
+    [req.user.userId, req.user.userId]
+  );
+
+  const users = await db.query(
+    "SELECT * FROM users WHERE username LIKE ? OR displayName LIKE ?",
+    [`%${query}%`, `%${query}%`]
+  );
+  const friendIds = new Set(
+    friends.map((friend) =>
+      friend.user1Id === req.user.userId ? friend.user2Id : friend.user1Id
+    )
+  );
+
+  const friendsList = [];
+  const othersList = [];
+
+  users.forEach((user) => {
+    if (friendIds.has(user.userId)) {
+      friendsList.push({
+        userId: user.userId,
+        email: user.email,
+        username: user.username,
+        displayName: user.displayName,
+      });
+    } else {
+      othersList.push({
+        userId: user.userId,
+        email: user.email,
+        username: user.username,
+        displayName: user.displayName,
+      });
+    }
+  });
+
+  res.send({
+    status: "success",
+    friends: friendsList,
+    others: othersList,
+  });
+};

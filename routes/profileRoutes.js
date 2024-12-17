@@ -24,4 +24,6 @@ router.get(
   profileController.getSavesFromUser
 );
 
+router.get("/search/:query", authMiddleware, profileController.searchProfiles);
+
 module.exports = router;
