@@ -18,6 +18,18 @@ exports.getPosts = async (req, res) => {
         const user = await db.query("SELECT * FROM users WHERE userId = ?", [
           post.userId,
         ]);
+        const likes = await db.query(
+          "SELECT COUNT(ratingId) as likes FROM ratings WHERE postId = ? AND rating = 1",
+          [post.postId]
+        );
+        const dislikes = await db.query(
+          "SELECT COUNT(ratingId) as dislikes FROM ratings WHERE postId = ? AND rating = 0",
+          [post.postId]
+        );
+        const rating = await db.query(
+          "SELECT rating FROM ratings WHERE postId = ? AND userId = ?",
+          [post.postId, req.user.userId]
+        );
         return {
           postId: post.postId,
           user: {
@@ -26,6 +38,9 @@ exports.getPosts = async (req, res) => {
             displayName: user[0].displayName,
           },
           content: post.content,
+          likes: likes[0].likes,
+          dislikes: dislikes[0].dislikes,
+          rating: rating[0] ? rating[0].rating : -1,
           medialinks: medialinks,
         };
       })
@@ -54,6 +69,20 @@ exports.getPost = async (req, res) => {
     const user = await db.query("SELECT * FROM users WHERE userId = ?", [
       post.userId,
     ]);
+
+    const likes = await db.query(
+      "SELECT COUNT(ratingId) as likes FROM ratings WHERE postId = ? AND rating = 1",
+      [post.postId]
+    );
+    const dislikes = await db.query(
+      "SELECT COUNT(ratingId) as dislikes FROM ratings WHERE postId = ? AND rating = 0",
+      [post.postId]
+    );
+    const rating = await db.query(
+      "SELECT rating FROM ratings WHERE postId = ? AND userId = ?",
+      [post.postId, req.user.userId]
+    );
+
     res.send({
       status: "success",
       response: {
@@ -63,6 +92,9 @@ exports.getPost = async (req, res) => {
           username: user[0].username,
           displayName: user[0].displayName,
         },
+        likes: likes[0].likes,
+        dislikes: dislikes[0].dislikes,
+        rating: rating[0] ? rating[0].rating : -1,
         content: post.content,
         medialinks: medialinks,
       },
@@ -158,7 +190,7 @@ exports.ratePost = async (req, res) => {
   if (ratings[0]) {
     await db.query(
       "UPDATE ratings SET rating = ? WHERE userId = ? AND postId = ?",
-      [isPositive ? 1 : 0],
+      [isPositive == true ? 1 : 0],
       userId,
       postId
     );
