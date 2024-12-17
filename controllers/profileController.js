@@ -46,21 +46,22 @@ exports.getProfile = async (req, res) => {
     userId,
   ]);
 
-  const requestsIncoming = await db.query(
-    "SELECT * FROM requests WHERE (senderId = ? AND recieverId = ?)",
-    [user.userId, userId]
-  );
-  const requestsOutgoing = await db.query(
-    "SELECT * FROM requests WHERE (senderId = ? AND recieverId = ?)",
-    [userId, user.userId]
-  );
-
   if (users[0]) {
     const user = users[0];
     const friends = await db.query(
       "SELECT * FROM friends WHERE (user1Id = ? AND user2Id = ?) OR (user1Id = ? AND user2Id = ?)",
       [userId, user.userId, user.userId, userId]
     );
+
+    const requestsIncoming = await db.query(
+      "SELECT * FROM requests WHERE (senderId = ? AND recieverId = ?)",
+      [user.userId, userId]
+    );
+    const requestsOutgoing = await db.query(
+      "SELECT * FROM requests WHERE (senderId = ? AND recieverId = ?)",
+      [userId, user.userId]
+    );
+
     var isFriend = false;
     if (friends[0]) {
       isFriend = true;
