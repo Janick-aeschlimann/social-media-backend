@@ -55,11 +55,12 @@ exports.getProfile = async (req, res) => {
 
     const requestsIncoming = await db.query(
       "SELECT * FROM requests WHERE (senderId = ? AND recieverId = ?)",
-      [user.userId, userId]
+      [userId, user.userId]
     );
+
     const requestsOutgoing = await db.query(
       "SELECT * FROM requests WHERE (senderId = ? AND recieverId = ?)",
-      [userId, user.userId]
+      [user.userId, userId]
     );
 
     var isFriend = false;
