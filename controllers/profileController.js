@@ -21,6 +21,7 @@ exports.getProfiles = async (req, res) => {
           username: user.username,
           displayName: user.displayName,
           isFriend: isFriend,
+          isOwn: userId == user.userId,
         };
       })
     ),
@@ -52,6 +53,7 @@ exports.getProfile = async (req, res) => {
         username: user.username,
         displayName: user.displayName,
         isFriend: isFriend,
+        isOwn: req.user.userId == user.userId,
       },
     });
   } else {
