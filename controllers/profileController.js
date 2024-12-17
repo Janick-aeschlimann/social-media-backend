@@ -358,6 +358,6 @@ exports.searchProfiles = async (req, res) => {
 
   res.send({
     status: "success",
-    results: { friends: friendsList, others: othersList },
+    response: { friends: friendsList, others: othersList },
   });
 };
