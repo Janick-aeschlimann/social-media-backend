@@ -30,6 +30,10 @@ exports.getPosts = async (req, res) => {
           "SELECT rating FROM ratings WHERE postId = ? AND userId = ?",
           [post.postId, req.user.userId]
         );
+        const saves = await db.query(
+          "SELECT * FROM saves WHERE postId = ? AND userId = ?",
+          [post.postId, req.user.userId]
+        );
         return {
           postId: post.postId,
           user: {
@@ -41,6 +45,7 @@ exports.getPosts = async (req, res) => {
           likes: likes[0].likes,
           dislikes: dislikes[0].dislikes,
           rating: rating[0] ? rating[0].rating : -1,
+          saved: saves[0] ? true : false,
           medialinks: medialinks,
         };
       })
@@ -82,7 +87,10 @@ exports.getPost = async (req, res) => {
       "SELECT rating FROM ratings WHERE postId = ? AND userId = ?",
       [post.postId, req.user.userId]
     );
-
+    const saves = await db.query(
+      "SELECT * FROM saves WHERE postId = ? AND userId = ?",
+      [post.postId, req.user.userId]
+    );
     res.send({
       status: "success",
       response: {
@@ -96,6 +104,7 @@ exports.getPost = async (req, res) => {
         dislikes: dislikes[0].dislikes,
         rating: rating[0] ? rating[0].rating : -1,
         content: post.content,
+        saved: saves[0] ? true : false,
         medialinks: medialinks,
       },
     });
