@@ -182,26 +182,28 @@ exports.ratePost = async (req, res) => {
   const userId = req.user.userId;
   const { isPositive } = req.body;
 
-  const ratings = await db.query(
-    "SELECT * FROM ratings WHERE userId = ? AND postId = ?",
-    [userId, postId]
-  );
-
-  if (ratings[0]) {
-    await db.query(
-      "UPDATE ratings SET rating = ? WHERE userId = ? AND postId = ?",
-      [isPositive == true ? 1 : 0],
-      userId,
-      postId
-    );
-    res.send({ status: "success" });
+  if (isPositive == undefined) {
+    res.send({ status: "error", response: "please specify isPositive" });
   } else {
-    await db.insert("ratings", {
-      userId: userId,
-      postId: postId,
-      rating: isPositive ? 1 : 0,
-    });
-    res.send({ status: "success" });
+    const ratings = await db.query(
+      "SELECT * FROM ratings WHERE userId = ? AND postId = ?",
+      [userId, postId]
+    );
+
+    if (ratings[0]) {
+      await db.query(
+        "UPDATE ratings SET rating = ? WHERE userId = ? AND postId = ?",
+        [isPositive == true ? 1 : 0, userId, postId]
+      );
+      res.send({ status: "success" });
+    } else {
+      await db.insert("ratings", {
+        userId: userId,
+        postId: postId,
+        rating: isPositive ? 1 : 0,
+      });
+      res.send({ status: "success" });
+    }
   }
 };
 
