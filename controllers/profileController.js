@@ -358,7 +358,6 @@ exports.searchProfiles = async (req, res) => {
 
   res.send({
     status: "success",
-    friends: friendsList,
-    others: othersList,
+    results: { friends: friendsList, others: othersList },
   });
 };
