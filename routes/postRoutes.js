@@ -31,6 +31,6 @@ router.post("/:postId/rate", authMiddleware, postController.ratePost);
 router.delete("/:postId/rate", authMiddleware, postController.deleteRating);
 
 router.post("/:postId/save", authMiddleware, postController.savePost);
-router.delete("/:postId/save", authMiddleware, postController.deleteSave);
+router.delete("/:postId/save", authMiddleware, postController.unsavePost);
 
 module.exports = router;
