@@ -40,6 +40,10 @@ exports.joinLivefeed = async (data, socket, io) => {
       livefeed: livefeeds[0],
     });
 
+    socket.off("livefeed_message", (data) =>
+      handleLivefeedMessage(data, socket, io)
+    );
+
     socket.on("livefeed_message", (data) =>
       handleLivefeedMessage(data, socket, io)
     );
@@ -116,5 +120,4 @@ exports.leaveLivefeed = async (socket, io) => {
   ]);
 
   socket.leave(livefeed[0].livefeedId);
-  socket.off("livefeed_message");
 };
