@@ -114,6 +114,8 @@ const cycle = async (livefeedId) => {
         ]);
       }
 
+      console.log(playingSong);
+
       const song = await db.query(
         "SELECT * FROM requestedSongs WHERE requestedSongId = ?",
         [playingSong.requestedSongId]
