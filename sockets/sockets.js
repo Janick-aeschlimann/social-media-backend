@@ -1,6 +1,7 @@
 const jwt = require("jsonwebtoken");
 const db = require("../db");
 const chatSocket = require("./chatSocket");
+const livefeedSocket = require("./livefeedSocket");
 
 const connect = async (socket, io) => {
   const activeUsers = await db.query(
@@ -56,6 +57,14 @@ module.exports = (io) => {
     socket.on("chat_message", (data) =>
       chatSocket.handleChatMessage(data, socket, io)
     );
+
+    socket.on("join_livefeed", (data) => {
+      livefeedSocket.joinLivefeed(data, socket, io);
+    });
+
+    socket.on("leave_livefeed", () => {
+      livefeedSocket.leaveLivefeed(data, socket, io);
+    });
 
     socket.on("disconnect", () => {
       console.log("A user disconnected:", socket.id);

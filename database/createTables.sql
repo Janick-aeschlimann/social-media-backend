@@ -127,3 +127,14 @@ CREATE TABLE
         FOREIGN KEY (senderId) REFERENCES users (userId) ON DELETE CASCADE,
         FOREIGN KEY (recieverId) REFERENCES users (userId) ON DELETE CASCADE
     );
+
+CREATE TABLE
+    livefeedMessages (
+        livefeedMessageId INT PRIMARY KEY AUTO_INCREMENT,
+        userId INT NOT NULL,
+        livefeedId INT NOT NULL,
+        message TEXT NOT NULL,
+        date DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (userId) REFERENCES users (userId) ON DELETE CASCADE,
+        FOREIGN KEY (livefeedId) REFERENCES livefeeds (livefeedId) ON DELETE CASCADE
+    );
