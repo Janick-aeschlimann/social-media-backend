@@ -75,6 +75,7 @@ const handleLivefeedRequestSong = async (data, socket, io) => {
       artist: song.artist,
       duration: song.duration,
       livefeedId: socket.livefeedId,
+      thumbnailUrl: song.thumbnailUrl,
     });
 
     io.to(socket.livefeedId).emit("livefeed_request_song", {
