@@ -101,7 +101,15 @@ const cycle = async (livefeedId) => {
     setTimeout(async () => {
       //playing phase
       const playingSong = await countVotes(livefeedId);
-      await db.query("DELETE FROM songs WHERE livefeedId = ?", [livefeedId]);
+      const songId = await db.query(
+        "SELECT songId FROM livefeeds WHERE livefeedId = ?",
+        [livefeedId]
+      );
+      if (songId[0] && songId[0].songId) {
+        await db.query("DELETE FROM songs WHERE songId = ?", [
+          songId[0].songId,
+        ]);
+      }
       const response = await db.insert("songs", {
         videoId: playingSong.videoId,
         title: playingSong.title,
