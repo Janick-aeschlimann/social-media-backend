@@ -64,8 +64,10 @@ module.exports = (io) => {
       if (user[0]) {
         const socketId = db.query(
           "SELECT * FROM activeUsers WHERE userId = ?",
-          [data.userId]
+          [Number(data.userId)]
         );
+
+        console.log(socketId);
 
         await db.insert("chatMessages", {
           senderId: senderId,
