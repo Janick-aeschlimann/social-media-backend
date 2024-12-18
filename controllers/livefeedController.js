@@ -2,7 +2,7 @@ const { use } = require("../app");
 const db = require("../db");
 
 exports.getLivefeeds = async (req, res) => {
-  const page = req.query.page || 0;
+  const page = req.params.page || 0;
 
   var livefeeds = await db.query("SELECT * FROM livefeeds LIMIT 10 OFFSET ?", [
     page * 10,
