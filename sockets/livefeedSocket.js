@@ -34,6 +34,8 @@ exports.joinLivefeed = async (data, socket, io) => {
     socket.join(livefeedId);
     socket.livefeedId = livefeedId;
 
+    console.log(livefeedId);
+
     if (!activeLivefeeds.includes(livefeedId)) {
       activeLivefeeds.push({ livefeedId: livefeedId, phase: "idle" });
       activateLivefeed(livefeedId);
