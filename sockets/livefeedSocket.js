@@ -33,7 +33,7 @@ exports.joinLivefeed = async (data, socket, io) => {
     ]);
 
     socket.join(livefeedId);
-    livefeedId = livefeedId;
+    socket.livefeedId = livefeedId;
 
     console.log(livefeedId);
 
