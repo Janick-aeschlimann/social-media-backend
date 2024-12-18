@@ -109,27 +109,29 @@ const handleLivefeedVoteSong = async (data, socket, io) => {
     [requestedSongId, socket.livefeedId]
   );
 
-  if (!requestedSong[0]) {
+  console.log(requestedSong);
+
+  if (requestedSong[0]) {
+    const vote = await db.query(
+      "SELECT * FROM votes WHERE userId = ? AND livefeedId = ?",
+      [senderId, socket.livefeedId]
+    );
+
+    if (vote[0]) {
+      await db.query("UPDATE votes SET requestedSongId = ? WHERE voteId = ?", [
+        requestedSongId,
+        vote[0].voteId,
+      ]);
+    } else {
+      await db.insert("votes", {
+        userId: senderId,
+        livefeedId: socket.livefeedId,
+        requestedSongId: requestedSongId,
+      });
+    }
+  } else {
     socket.emit("error", { status: "error", response: "Song not found" });
     return;
-  }
-
-  const vote = await db.query(
-    "SELECT * FROM votes WHERE userId = ? AND livefeedId = ?",
-    [senderId, socket.livefeedId]
-  );
-
-  if (vote[0]) {
-    await db.query("UPDATE votes SET requestedSongId = ? WHERE voteId = ?", [
-      requestedSongId,
-      vote[0].voteId,
-    ]);
-  } else {
-    await db.insert("votes", {
-      userId: senderId,
-      livefeedId: socket.livefeedId,
-      requestedSongId: requestedSongId,
-    });
   }
 };
 
