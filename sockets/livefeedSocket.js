@@ -104,6 +104,8 @@ const handleLivefeedVoteSong = async (data, socket, io) => {
     return;
   }
 
+  console.log(requestedSongId, socket.livefeedId);
+
   const requestedSong = await db.query(
     "SELECT * FROM requestedSongs WHERE requestedSongId = ? AND livefeedId = ?",
     [requestedSongId, socket.livefeedId]
