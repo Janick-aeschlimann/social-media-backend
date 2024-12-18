@@ -71,6 +71,11 @@ const handleLivefeedRequestSong = async (data, socket, io) => {
   );
 
   if (requestedSongs[0]) {
+    socket.emit("error", {
+      status: "error",
+      response: "Song has already been requested",
+    });
+    return;
   }
 
   const song = await musicController.getSong(videoId);
