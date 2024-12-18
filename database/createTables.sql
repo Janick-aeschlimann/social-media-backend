@@ -50,6 +50,42 @@ CREATE TABLE
     );
 
 CREATE TABLE
+    songs (
+        songId INT PRIMARY KEY AUTO_INCREMENT,
+        videoId VARCHAR(255) NOT NULL,
+        title VARCHAR(255) NOT NULL,
+        artist VARCHAR(255) NOT NULL,
+        duration INT NOT NULL,
+        started_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        thumbnailUrl VARCHAR(255) NOT NULL
+    );
+
+CREATE TABLE
+    requestedSongs (
+        requestedSongId INT PRIMARY KEY AUTO_INCREMENT,
+        userId INT NOT NULL,
+        videoId VARCHAR(255) NOT NULL,
+        title VARCHAR(255) NOT NULL,
+        artist VARCHAR(255) NOT NULL,
+        duration INT NOT NULL,
+        livefeedId INT NOT NULL,
+        thumbnailUrl VARCHAR(255) NOT NULL,
+        FOREIGN KEY (userId) REFERENCES users (userId),
+        FOREIGN KEY (livefeedId) REFERENCES livefeeds (livefeedId)
+    );
+
+CREATE TABLE
+    votes (
+        voteId INT PRIMARY KEY AUTO_INCREMENT,
+        userId INT NOT NULL,
+        requestedSongId INT NOT NULL,
+        livefeedId INT NOT NULL,
+        FOREIGN KEY (userId) REFERENCES users (userId) ON DELETE CASCADE,
+        FOREIGN KEY (requestedSongId) REFERENCES requestedSongs (requestedSongId) ON DELETE CASCADE,
+        FOREIGN KEY (livefeedId) REFERENCES livefeeds (livefeedId) ON DELETE CASCADE
+    );
+
+CREATE TABLE
     livefeeds (
         livefeedId INT PRIMARY KEY AUTO_INCREMENT,
         userId INT NOT NULL,
@@ -57,8 +93,12 @@ CREATE TABLE
         description TEXT NOT NULL,
         age_restriction INT DEFAULT 0,
         cooldown INT DEFAULT 0,
-        FOREIGN KEY (userId) REFERENCES users (userId)
+        FOREIGN KEY (userId) REFERENCES users (userId),
     );
+
+ALTER TABLE livefeeds
+ADD COLUMN songId INT DEFAULT NULL,
+ADD FOREIGN KEY (songId) REFERENCES songs (songId) ON DELETE CASCADE;
 
 CREATE TABLE
     activeUsers (

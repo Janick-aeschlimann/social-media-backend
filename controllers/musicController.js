@@ -9,9 +9,28 @@ exports.searchSongs = async (req, res) => {
     results.content.map((song) => ({
       title: song.title,
       artist: song.artists[0].name,
+      videoId: song.id,
       thumbnail: song.thumbnails[1].url,
       duration: song.duration.duration,
       durationFormatted: song.duration.formatted,
     }))
   );
+};
+
+getSong = async (videoId) => {
+  try {
+    const song = await ytmusic.get(videoId);
+
+    console.log(song);
+
+    return {
+      title: song.title,
+      artist: song.artists[0].name,
+      videoId: song.id,
+      thumbnailUrl: song.thumbnails[1].url,
+      duration: song.duration.duration,
+    };
+  } catch {
+    return null;
+  }
 };

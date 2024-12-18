@@ -1,4 +1,5 @@
 const db = require("../db");
+const musicController = require("../controllers/musicController");
 
 exports.joinLivefeed = async (data, socket, io) => {
   const livefeedId = data.livefeedId;
@@ -29,15 +30,21 @@ exports.joinLivefeed = async (data, socket, io) => {
       socket.user.userId,
     ]);
     socket.join(livefeedId);
+    socket.livefeedId = livefeedId;
 
     const messages = await db.query(
       "SELECT * FROM livefeedMessages WHERE livefeedId = ? ORDER BY date DESC LIMIT 20",
+      [livefeedId]
+    );
+    const requests = await db.query(
+      "SELECT * FROM requestedSongs WHERE livefeedId = ?",
       [livefeedId]
     );
 
     socket.emit("livefeed_init_data", {
       messages: messages,
       livefeed: livefeeds[0],
+      requests: requests,
     });
 
     socket.removeAllListeners("livefeed_message");
@@ -45,8 +52,31 @@ exports.joinLivefeed = async (data, socket, io) => {
     socket.on("livefeed_message", (data) =>
       handleLivefeedMessage(data, socket, io)
     );
+
+    socket.on("livefeed_request_song", (data) =>
+      handleLivefeedRequestSong(data, socket, io)
+    );
   } else {
     socket.emit("error", { status: "error", response: "livefeed not found" });
+  }
+};
+
+const handleLivefeedRequestSong = async (data, socket, io) => {
+  const senderId = socket.user.userId;
+  const videoId = data.videoId;
+
+  const song = await musicController.getSong(videoId);
+
+  if (song != null) {
+    await db.insert("requestedSongs", { userId: senderId, videoId: videoId });
+
+    io.to(socket.livefeedId).emit("livefeed_request_song", {
+      userId: senderId,
+      videoId: videoId,
+      title: song.title,
+    });
+  } else {
+    socket.emit("error", { status: "error", response: "Song not found" });
   }
 };
 
