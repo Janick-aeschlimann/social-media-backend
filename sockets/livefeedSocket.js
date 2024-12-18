@@ -110,6 +110,9 @@ const cycle = async (livefeedId) => {
           songId[0].songId,
         ]);
       }
+
+      console.log(playingSong);
+
       const response = await db.insert("songs", {
         videoId: playingSong.videoId,
         title: playingSong.title,
