@@ -3,14 +3,55 @@ const db = require("../db");
 
 exports.getLivefeeds = async (req, res) => {
   const page = req.params.page || 0;
+  const cooldownMin = req.query.cooldownMin || 0;
+  const cooldownMax = req.query.cooldownMax || 300;
+  const chattersMin = req.query.chattersMin || 0;
+  const chattersMax = req.query.chattersMax || -1;
+  const sortBy = req.query.sortBy || "chatters";
+  const sortOrder = req.query.sortOrder || "desc";
 
-  var livefeeds = await db.query("SELECT * FROM livefeeds LIMIT 10 OFFSET ?", [
-    page * 10,
-  ]);
+  let query = `
+    SELECT livefeeds.*, COUNT(activeUsers.userId) as chatters, 
+    (SELECT COUNT(followerId) FROM follower WHERE livefeeds.livefeedId = follower.livefeedId) as followers
+    FROM livefeeds
+    LEFT JOIN activeUsers ON livefeeds.livefeedId = activeUsers.livefeedId
+    WHERE livefeeds.cooldown BETWEEN ? AND ?
+    GROUP BY livefeeds.livefeedId
+    HAVING chatters >= ? ${chattersMax !== -1 ? "AND chatters <= ?" : ""}
+    ORDER BY ${sortBy} ${sortOrder.toUpperCase()}
+    LIMIT 10 OFFSET ?
+  `;
+  let queryParams = [cooldownMin, cooldownMax, chattersMin];
+  if (chattersMax !== -1) {
+    queryParams.push(chattersMax);
+  }
+  queryParams.push(page * 10);
 
-  const total = await db.query("SELECT COUNT(*) as total FROM livefeeds");
+  var livefeeds = await db.query(query, queryParams);
 
-  const totalPages = Number(Math.ceil(total[0].total / 10));
+  const total = await db.query(
+    `
+    SELECT COUNT(*) as total
+    FROM (
+      SELECT livefeeds.livefeedId
+      FROM livefeeds
+      LEFT JOIN activeUsers ON livefeeds.livefeedId = activeUsers.livefeedId
+      WHERE livefeeds.cooldown BETWEEN ? AND ?
+      GROUP BY livefeeds.livefeedId
+      HAVING COUNT(activeUsers.userId) >= ? ${
+        chattersMax !== -1 ? "AND COUNT(activeUsers.userId) <= ?" : ""
+      }
+    ) as filtered
+    `,
+    [
+      cooldownMin,
+      cooldownMax,
+      chattersMin,
+      ...(chattersMax !== -1 ? [chattersMax] : []),
+    ]
+  );
+
+  const totalPages = Math.ceil(total[0].total / 10);
 
   livefeeds = await Promise.all(
     livefeeds.map(async (livefeed) => {
@@ -32,6 +73,7 @@ exports.getLivefeeds = async (req, res) => {
         description: livefeed.description,
         age_restriction: livefeed.age_restriction,
         cooldown: livefeed.cooldown,
+        chatters: livefeed.chatters,
         follower: follower[0].follower,
       };
     })
@@ -40,7 +82,7 @@ exports.getLivefeeds = async (req, res) => {
   res.send({
     status: "success",
     response: {
-      page: page,
+      page: Number(page),
       totalPages: Number(totalPages),
       results: livefeeds,
     },
