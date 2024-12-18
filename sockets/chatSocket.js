@@ -1,6 +1,7 @@
 const db = require("../db");
 
 exports.handleChatMessage = async (socket, io) => {
+  data = socket.data;
   console.log("Message received:", data);
   const senderId = socket.user.userId;
   const message = data.message;
