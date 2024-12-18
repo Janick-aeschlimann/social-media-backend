@@ -57,7 +57,7 @@ module.exports = (io) => {
       const senderId = socket.user.userId;
       const message = data.message;
 
-      const user = db.query("SELECT * FROM users WHERE userId = ?", [
+      const user = await db.query("SELECT * FROM users WHERE userId = ?", [
         data.userId,
       ]);
 
@@ -66,6 +66,7 @@ module.exports = (io) => {
           "SELECT * FROM activeUsers WHERE userId = ?",
           [data.userId]
         );
+
         await db.insert("chatMessages", {
           senderId: senderId,
           recieverId: data.userId,
