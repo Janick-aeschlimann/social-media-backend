@@ -116,3 +116,13 @@ CREATE TABLE
         FOREIGN KEY (userId) REFERENCES users (userId) ON DELETE CASCADE,
         FOREIGN KEY (postId) REFERENCES posts (postId) ON DELETE CASCADE
     );
+
+CREATE TABLE
+    chatMessages (
+        messageId INT PRIMARY KEY AUTO_INCREMENT,
+        senderId INT NOT NULL,
+        recieverId INT NOT NULL,
+        message TEXT NOT NULL,
+        FOREIGN KEY (senderId) REFERENCES users (userId) ON DELETE CASCADE,
+        FOREIGN KEY (recieverId) REFERENCES users (userId) ON DELETE CASCADE
+    );

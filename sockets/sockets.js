@@ -45,20 +45,35 @@ module.exports = (io) => {
     console.log("A user connected:", socket.id);
     connect(socket, io);
 
-    socket.on("chat_message", (data) => {
+    socket.on("chat_message", async (data) => {
       console.log("Message received:", data);
-      const sender = socket.user.userId;
+      const senderId = socket.user.userId;
       const message = data.message;
-      const socketId = db.query("SELECT * FROM activeUsers WHERE userId = ?", [
+
+      const user = db.query("SELECT * FROM users WHERE userId = ?", [
         data.userId,
       ]);
-      if (socketId[0]) {
-        io.to(socketId[0].socketId).emit("chat_message", {
-          sender: sender,
+
+      if (user[0]) {
+        const socketId = db.query(
+          "SELECT * FROM activeUsers WHERE userId = ?",
+          [data.userId]
+        );
+        await db.insert("messages", {
+          senderId: senderId,
+          recieverId: data.userId,
           message: message,
         });
+        if (socketId[0]) {
+          io.to(socketId[0].socketId).emit("chat_message", {
+            sender: senderId,
+            message: message,
+          });
+        } else {
+          console.log("User is not online");
+        }
       } else {
-        ("user not online");
+        socket.emit("error", { status: "error", response: "user not found" });
       }
     });
 
