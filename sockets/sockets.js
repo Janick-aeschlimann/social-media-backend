@@ -66,7 +66,7 @@ module.exports = (io) => {
           "SELECT * FROM activeUsers WHERE userId = ?",
           [data.userId]
         );
-        await db.insert("messages", {
+        await db.insert("chatMessages", {
           senderId: senderId,
           recieverId: data.userId,
           message: message,

@@ -123,6 +123,7 @@ CREATE TABLE
         senderId INT NOT NULL,
         recieverId INT NOT NULL,
         message TEXT NOT NULL,
+        date DATETIME DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (senderId) REFERENCES users (userId) ON DELETE CASCADE,
         FOREIGN KEY (recieverId) REFERENCES users (userId) ON DELETE CASCADE
     );
