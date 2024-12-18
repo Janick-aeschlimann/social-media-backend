@@ -66,7 +66,7 @@ const handleLivefeedRequestSong = async (data, socket, io) => {
   const videoId = data.videoId;
 
   const requestedSongs = await db.query(
-    "SELECT * FROM requestedSongs WHERE AND livefeedId = ? AND videoId = ?",
+    "SELECT * FROM requestedSongs WHERE livefeedId = ? AND videoId = ?",
     [socket.livefeedId, videoId]
   );
 
