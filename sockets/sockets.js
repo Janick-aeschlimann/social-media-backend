@@ -53,8 +53,8 @@ module.exports = (io) => {
     console.log("A user connected:", socket.id);
     connect(socket, io);
 
-    socket.on("chat_message", (socket) =>
-      chatSocket.handleChatMessage(socket, io)
+    socket.on("chat_message", (data) =>
+      chatSocket.handleChatMessage(data, socket, io)
     );
 
     socket.on("disconnect", () => {
