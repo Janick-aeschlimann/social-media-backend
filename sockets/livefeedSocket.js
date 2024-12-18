@@ -118,7 +118,7 @@ const cycle = async (livefeedId) => {
       //send play_song event to client
       console.log("Playing phase", duration);
       livefeed.phase = "playing";
-      setTimeout(() => {
+      setTimeout(async () => {
         //song finished
         console.log("song almoast finished -> next cycle");
         //if users are still in livefeed after song is played, cycle again else remove livefeed from activeLivefeeds
@@ -132,10 +132,18 @@ const cycle = async (livefeedId) => {
           activeLivefeeds.filter(
             (livefeed) => livefeed.livefeedId != livefeedId
           );
+          const songId = await db.query(
+            "SELECT songId FROM livefeeds WHERE livefeedId = ?",
+            [livefeedId]
+          );
+          if (songId[0] && songId[0].songId) {
+            await db.query("DELETE FROM songs WHERE songId = ?", [
+              songId[0].songId,
+            ]);
+          }
           db.query("UPDATE livefeeds SET songId = NULL WHERE livefeedId = ?", [
             livefeedId,
           ]);
-          db.query("DELETE FROM songs WHERE livefeedId = ?", [livefeedId]);
         }
       }, 1000 * (playingSong.duration - 20));
     }, 1000 * 10);
