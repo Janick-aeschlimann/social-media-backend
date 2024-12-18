@@ -84,7 +84,9 @@ const cycle = async (livefeedId) => {
   );
   livefeed.phase = "request";
   console.log("Request phase");
+  //request phase
   setTimeout(async () => {
+    //voting phase
     const requestedSongs = await db.query(
       "SELECT * FROM requestedSongs WHERE livefeedId = ?",
       [livefeedId]
@@ -97,10 +99,45 @@ const cycle = async (livefeedId) => {
     livefeed.phase = "voting";
     console.log("Voting phase");
     setTimeout(async () => {
+      //playing phase
       const playingSong = await countVotes(livefeedId);
+      await db.query("DELETE FROM songs WHERE livefeedId = ?", [livefeedId]);
+      const response = await db.insert("songs", {
+        videoId: playingSong.videoId,
+        title: playingSong.title,
+        artist: playingSong.artist,
+        duration: playingSong.duration,
+        thumbnailUrl: playingSong.thumbnailUrl,
+      });
+      db.query("DELETE FROM votes WHERE livefeedId = ?", [livefeedId]);
+      db.query("DELETE FROM requestedSongs WHERE livefeedId = ?", [livefeedId]);
+      db.query("UPDATE livefeeds SET songId = ? WHERE livefeedId = ?", [
+        response.insertId,
+        livefeedId,
+      ]);
+      //send play_song event to client
+      console.log("Playing phase", duration);
       livefeed.phase = "playing";
-      console.log("Playing phase");
-      //if users are still in livefeed after song is played, cycle again else remove livefeed from activeLivefeeds
+      setTimeout(() => {
+        //song finished
+        console.log("song almoast finished -> next cycle");
+        //if users are still in livefeed after song is played, cycle again else remove livefeed from activeLivefeeds
+        const users = db.query(
+          "SELECT * FROM activeUsers WHERE livefeedId = ?",
+          [livefeedId]
+        );
+        if (users[0]) {
+          cycle(livefeedId);
+        } else {
+          activeLivefeeds.filter(
+            (livefeed) => livefeed.livefeedId != livefeedId
+          );
+          db.query("UPDATE livefeeds SET songId = NULL WHERE livefeedId = ?", [
+            livefeedId,
+          ]);
+          db.query("DELETE FROM songs WHERE livefeedId = ?", [livefeedId]);
+        }
+      }, 1000 * (playingSong.duration - 20));
     }, 1000 * 10);
   }, 1000 * 10);
 };
