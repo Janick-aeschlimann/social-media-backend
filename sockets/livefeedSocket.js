@@ -159,7 +159,7 @@ const cycle = async (livefeedId) => {
             livefeedId,
           ]);
         }
-      }, 1000 * (playingSong.duration - 20));
+      }, 1000 * (song[0].duration - 20));
     }, 1000 * 10);
   }, 1000 * 10);
 };
