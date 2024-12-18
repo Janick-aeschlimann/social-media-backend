@@ -1,6 +1,8 @@
 const db = require("../db");
 const musicController = require("../controllers/musicController");
 
+const activeLivefeeds = [];
+
 exports.joinLivefeed = async (data, socket, io) => {
   const livefeedId = data.livefeedId;
 
@@ -32,6 +34,10 @@ exports.joinLivefeed = async (data, socket, io) => {
     socket.join(livefeedId);
     socket.livefeedId = livefeedId;
 
+    if (!activeLivefeeds.includes(livefeedId)) {
+      activeLivefeeds.push({ livefeedId: livefeedId, phase: "idle" });
+    }
+
     const messages = await db.query(
       "SELECT * FROM livefeedMessages WHERE livefeedId = ? ORDER BY date DESC LIMIT 20",
       [livefeedId]
@@ -56,14 +62,80 @@ exports.joinLivefeed = async (data, socket, io) => {
     socket.on("livefeed_request_song", (data) =>
       handleLivefeedRequestSong(data, socket, io)
     );
+
+    socket.on("livefeed_vote_song", (data) =>
+      handleLivefeedVoteSong(data, socket, io)
+    );
   } else {
     socket.emit("error", { status: "error", response: "livefeed not found" });
+  }
+};
+
+const activateLivefeed = async (livefeedId) => {
+  const livefeed = activeLivefeeds.find(
+    (livefeed) => livefeed.livefeedId == livefeedId
+  );
+  if (livefeed) {
+    livefeed.phase = "request";
+  }
+  await setTimeout(() => {}, 1000 * 10);
+  livefeed.phase = "voting";
+  await setTimeout(() => {}, 1000 * 10);
+  livefeed.phase = "playing";
+};
+
+const handleLivefeedVoteSong = async (data, socket, io) => {
+  const senderId = socket.user.userId;
+  const requestedSongId = data.requestedSongId;
+
+  if (
+    activeLivefeeds.find((livefeed) => livefeed.livefeedId == socket.livefeedId)
+      .phase != "voting"
+  ) {
+    socket.emit("error", { status: "error", response: "Not in voting phase" });
+    return;
+  }
+
+  const requestedSong = await db.query(
+    "SELECT * FROM requestedSongs WHERE requestedSongId = ? AND livefeedId = ?",
+    [requestedSongId, socket.livefeedId]
+  );
+
+  if (!requestedSong[0]) {
+    socket.emit("error", { status: "error", response: "Song not found" });
+    return;
+  }
+
+  const vote = await db.query(
+    "SELECT * FROM votes WHERE userId = ? AND livefeedId = ?",
+    [senderId, socket.livefeedId]
+  );
+
+  if (vote[0]) {
+    await db.query("UPDATE votes SET requestedSongId = ? WHERE voteId = ?", [
+      requestedSongId,
+      vote[0].voteId,
+    ]);
+  } else {
+    await db.insert("votes", {
+      userId: senderId,
+      livefeedId: socket.livefeedId,
+      requestedSongId: requestedSongId,
+    });
   }
 };
 
 const handleLivefeedRequestSong = async (data, socket, io) => {
   const senderId = socket.user.userId;
   const videoId = data.videoId;
+
+  if (
+    activeLivefeeds.find((livefeed) => livefeed.livefeedId == socket.livefeedId)
+      .phase != "request"
+  ) {
+    socket.emit("error", { status: "error", response: "Not in request phase" });
+    return;
+  }
 
   const requestedSongs = await db.query(
     "SELECT * FROM requestedSongs WHERE livefeedId = ? AND videoId = ?",
