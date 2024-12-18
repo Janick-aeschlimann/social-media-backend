@@ -34,14 +34,10 @@ exports.joinLivefeed = async (data, socket, io) => {
       "SELECT * FROM livefeedMessages WHERE livefeedId = ? ORDER BY date DESC LIMIT 20",
       [livefeedId]
     );
-    const livefeed = await db.query(
-      "SELECT * FROM livefeeds WHERE livefeedId = ?",
-      [livefeedId]
-    );
 
     socket.emit("livefeed_init_data", {
       messages: messages,
-      livefeed: livefeed,
+      livefeed: livefeeds[0],
     });
 
     socket.on("livefeed_message", (data) =>

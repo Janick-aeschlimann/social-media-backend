@@ -63,7 +63,7 @@ module.exports = (io) => {
     });
 
     socket.on("leave_livefeed", () => {
-      livefeedSocket.leaveLivefeed(data, socket, io);
+      livefeedSocket.leaveLivefeed(socket, io);
     });
 
     socket.on("disconnect", () => {
