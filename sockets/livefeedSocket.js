@@ -88,7 +88,7 @@ const activateLivefeed = async (livefeedId) => {
     await setTimeout(() => {}, 1000 * 10);
     livefeed.phase = "playing";
 
-    log("Playing phase");
+    console.log("Playing phase");
   }
 };
 
