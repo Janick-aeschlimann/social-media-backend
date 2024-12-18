@@ -17,7 +17,7 @@ exports.searchSongs = async (req, res) => {
   );
 };
 
-getSong = async (videoId) => {
+exports.getSong = async (videoId) => {
   try {
     const song = await ytmusic.get(videoId);
 
