@@ -8,17 +8,41 @@ exports.joinLivefeed = async (data, socket, io) => {
     [livefeedId]
   );
 
+  const activeUsers = await db.query(
+    "SELECT * FROM activeUsers WHERE userId = ?",
+    [socket.user.userId]
+  );
+
+  if (activeUsers[0]) {
+    if (activeUsers[0].livefeedId != null) {
+      socket.emit("error", {
+        status: "error",
+        response: "You are already in this livefeed",
+      });
+      return;
+    }
+  }
+
   if (livefeeds[0]) {
     await db.query("UPDATE activeUsers SET livefeedId = ? WHERE userId = ?", [
       livefeedId,
       socket.user.userId,
     ]);
     socket.join(livefeedId);
+
     const messages = await db.query(
       "SELECT * FROM livefeedMessages WHERE livefeedId = ? ORDER BY date DESC LIMIT 20",
       [livefeedId]
     );
-    socket.emit("livefeed_init_data", { messages: messages });
+    const livefeed = await db.query(
+      "SELECT * FROM livefeeds WHERE livefeedId = ?",
+      [livefeedId]
+    );
+
+    socket.emit("livefeed_init_data", {
+      messages: messages,
+      livefeed: livefeed,
+    });
 
     socket.on("livefeed_message", (data) =>
       handleLivefeedMessage(data, socket, io)
@@ -96,4 +120,7 @@ exports.leaveLivefeed = async (data, socket, io) => {
   ]);
 
   socket.leave(livefeed[0].livefeedId);
+  socket.off("livefeed_message", (data) =>
+    handleLivefeedMessage(data, socket, io)
+  );
 };
