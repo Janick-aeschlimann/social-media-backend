@@ -101,7 +101,7 @@ const handleLivefeedVoteSong = async (data, socket, io) => {
     [senderId]
   );
 
-  const livefeedId = activeUsers[0].livefeedId;
+  const livefeedId = socket.livefeedId;
 
   if (
     activeLivefeeds.find((livefeed) => livefeed.livefeedId == livefeedId)
