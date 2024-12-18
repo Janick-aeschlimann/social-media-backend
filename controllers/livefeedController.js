@@ -10,7 +10,7 @@ exports.getLivefeeds = async (req, res) => {
 
   const total = await db.query("SELECT COUNT(*) as total FROM livefeeds");
 
-  const totalPages = Math.ceil(total[0].total / 10);
+  const totalPages = Number(Math.ceil(total[0].total / 10));
 
   livefeeds = await Promise.all(
     livefeeds.map(async (livefeed) => {
