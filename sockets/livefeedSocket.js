@@ -36,6 +36,7 @@ exports.joinLivefeed = async (data, socket, io) => {
 
     if (!activeLivefeeds.includes(livefeedId)) {
       activeLivefeeds.push({ livefeedId: livefeedId, phase: "idle" });
+      activateLivefeed(livefeedId);
     }
 
     const messages = await db.query(
