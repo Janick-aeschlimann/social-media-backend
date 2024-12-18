@@ -35,9 +35,10 @@ exports.joinLivefeed = async (data, socket, io) => {
     socket.join(livefeedId);
 
     if (
-      !activeLivefeeds.find((livefeed) => livefeed.livefeedId == livefeedId)
+      !activeLivefeeds.some((livefeed) => livefeed.livefeedId === livefeedId)
     ) {
-      activeLivefeeds.push({ livefeedId: livefeedId, phase: "request" });
+      activeLivefeeds.push({ livefeedId: livefeedId, phase: "idle" });
+      activateLivefeed(livefeedId, io);
     }
 
     const messages = await db.query(
