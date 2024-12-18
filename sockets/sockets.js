@@ -11,7 +11,11 @@ const connect = async (socket, io) => {
     await db.query("DELETE FROM activeUsers WHERE userId = ?", [
       socket.user.userId,
     ]);
-    io.sockets.sockets.get(activeUsers[0].socketId).disconnect(true);
+    const oldSocket = io.sockets.sockets.get(activeUsers[0].socketId);
+
+    if (oldSocket) {
+      oldSocket.disconnect();
+    }
   }
   await db.insert("activeUsers", {
     userId: socket.user.userId,
