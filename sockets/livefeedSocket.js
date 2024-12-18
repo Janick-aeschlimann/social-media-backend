@@ -77,11 +77,18 @@ const activateLivefeed = async (livefeedId) => {
   );
   if (livefeed) {
     livefeed.phase = "request";
+    console.log("Request phase");
+
+    await setTimeout(() => {}, 1000 * 10);
+    livefeed.phase = "voting";
+
+    console.log("Voting phase");
+
+    await setTimeout(() => {}, 1000 * 10);
+    livefeed.phase = "playing";
+
+    log("Playing phase");
   }
-  await setTimeout(() => {}, 1000 * 10);
-  livefeed.phase = "voting";
-  await setTimeout(() => {}, 1000 * 10);
-  livefeed.phase = "playing";
 };
 
 const handleLivefeedVoteSong = async (data, socket, io) => {
