@@ -3,7 +3,7 @@ const router = express.Router();
 const { authMiddleware } = require("../middleware/authMiddleware");
 const livefeedController = require("../controllers/livefeedController");
 
-router.get("/", authMiddleware, livefeedController.getLivefeeds);
+router.get("/page/:page", authMiddleware, livefeedController.getLivefeeds);
 router.get("/:livefeedId", authMiddleware, livefeedController.getLivefeed);
 router.post("/", authMiddleware, livefeedController.createLivefeed);
 router.put("/:livefeedId", authMiddleware, livefeedController.editLivefeed);

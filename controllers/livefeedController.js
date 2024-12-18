@@ -1,7 +1,16 @@
+const { use } = require("../app");
 const db = require("../db");
 
 exports.getLivefeeds = async (req, res) => {
-  var livefeeds = await db.getAll("livefeeds");
+  const page = req.query.page || 0;
+
+  var livefeeds = await db.query("SELECT * FROM livefeeds LIMIT 10 OFFSET ?", [
+    page * 10,
+  ]);
+
+  const total = await db.query("SELECT COUNT(*) as total FROM livefeeds");
+
+  const totalPages = Math.ceil(total[0].total / 10);
 
   livefeeds = await Promise.all(
     livefeeds.map(async (livefeed) => {
@@ -9,9 +18,16 @@ exports.getLivefeeds = async (req, res) => {
         "SELECT COUNT(followerId) as follower FROM follower WHERE livefeedId = ?",
         [livefeed.livefeedId]
       );
+      const user = await db.query("SELECT * FROM users WHERE userId = ?", [
+        livefeed.userId,
+      ]);
       return {
         livefeedId: livefeed.livefeedId,
-        userId: livefeed.userId,
+        user: {
+          userId: user[0].userId,
+          username: user[0].username,
+          displayName: user[0].displayName,
+        },
         name: livefeed.name,
         description: livefeed.description,
         age_restriction: livefeed.age_restriction,
@@ -21,7 +37,10 @@ exports.getLivefeeds = async (req, res) => {
     })
   );
 
-  res.send({ status: "success", response: livefeeds });
+  res.send({
+    status: "success",
+    response: { page: page, totalPages: totalPages, results: livefeeds },
+  });
 };
 
 exports.getLivefeed = async (req, res) => {
