@@ -80,15 +80,15 @@ const activateLivefeed = async (livefeedId) => {
     livefeed.phase = "request";
     console.log("Request phase");
 
-    await setTimeout(() => {}, 1000 * 10);
-    livefeed.phase = "voting";
+    setTimeout(() => {
+      livefeed.phase = "voting";
+      console.log("Voting phase");
 
-    console.log("Voting phase");
-
-    await setTimeout(() => {}, 1000 * 10);
-    livefeed.phase = "playing";
-
-    console.log("Playing phase");
+      setTimeout(() => {
+        livefeed.phase = "playing";
+        console.log("Playing phase");
+      }, 1000 * 10);
+    }, 1000 * 10);
   }
 };
 
