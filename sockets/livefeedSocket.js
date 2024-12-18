@@ -57,6 +57,9 @@ exports.joinLivefeed = async (data, socket, io) => {
       messages: messages,
       livefeed: livefeeds[0],
       requests: requests,
+      phase:
+        activeLivefeeds.find((livefeed) => livefeed.livefeedId === livefeedId)
+          ?.phase || "idle",
     });
 
     socket.removeAllListeners("livefeed_message");
@@ -77,19 +80,23 @@ exports.joinLivefeed = async (data, socket, io) => {
   }
 };
 
-const activateLivefeed = async (livefeedId) => {
-  cycle(livefeedId);
+const activateLivefeed = async (livefeedId, io) => {
+  cycle(livefeedId, io);
 };
 
-const cycle = async (livefeedId) => {
+const cycle = async (livefeedId, io) => {
   const livefeed = activeLivefeeds.find(
     (livefeed) => livefeed.livefeedId == livefeedId
   );
   livefeed.phase = "request";
   console.log("Request phase");
   //request phase
+  io.to(livefeedId).emit("livefeed_request_phase", {
+    votingTime: new Date().getTime() + requestTime * 1000,
+  });
   setTimeout(async () => {
     //voting phase
+
     const requestedSongs = await db.query(
       "SELECT * FROM requestedSongs WHERE livefeedId = ?",
       [livefeedId]
@@ -97,8 +104,13 @@ const cycle = async (livefeedId) => {
     if (requestedSongs.length == 0) {
       console.log("No songs requested");
       activeLivefeeds.filter((livefeed) => livefeed.livefeedId != livefeedId);
+      cycle(livefeedId, io);
       return;
     }
+    io.to(livefeedId).emit("livefeed_voting_phase", {
+      requestedSongs: requestedSongs,
+      playingTime: new Date().getTime() + votingTime * 1000,
+    });
     livefeed.phase = "voting";
     console.log("Voting phase");
     setTimeout(async () => {
@@ -134,19 +146,22 @@ const cycle = async (livefeedId) => {
         response.insertId,
         livefeedId,
       ]);
-      //send play_song event to client
+      io.to(livefeedId).emit("livefeed_play_song", {
+        song: song[0],
+        nextRequest:
+          new Date().getTime() +
+          (song[0].duration - (requestTime + votingTime)) * 1000,
+      });
       console.log("Playing phase", song[0]);
       livefeed.phase = "playing";
       setTimeout(async () => {
         //song finished
         console.log("song almoast finished -> next cycle");
         //if users are still in livefeed after song is played, cycle again else remove livefeed from activeLivefeeds
-        const users = db.query(
-          "SELECT * FROM activeUsers WHERE livefeedId = ?",
-          [livefeedId]
-        );
-        if (users[0]) {
-          cycle(livefeedId);
+        if (io.sockets.adapter.rooms.get(livefeedId)?.size > 0) {
+          console.log("Next cycle");
+          cycle(livefeedId, io);
+          return;
         } else {
           activeLivefeeds.filter(
             (livefeed) => livefeed.livefeedId != livefeedId

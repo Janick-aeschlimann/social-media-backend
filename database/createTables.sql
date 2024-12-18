@@ -72,7 +72,7 @@ CREATE TABLE activeUsers (
     activeUserId INT PRIMARY KEY AUTO_INCREMENT,
     userId INT NOT NULL,
     socketId INT NOT NULL,
-    livefeedId INT NOT NULL,
+    livefeedId INT DEFAULT NULL,
     FOREIGN KEY (userId) REFERENCES users (userId),
     FOREIGN KEY (livefeedId) REFERENCES livefeeds (livefeedId)
 );
