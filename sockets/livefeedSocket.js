@@ -130,7 +130,7 @@ const cycle = async (livefeedId) => {
         livefeedId,
       ]);
       //send play_song event to client
-      console.log("Playing phase", duration);
+      console.log("Playing phase", song[0]);
       livefeed.phase = "playing";
       setTimeout(async () => {
         //song finished
