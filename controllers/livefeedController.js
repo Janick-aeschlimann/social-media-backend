@@ -39,7 +39,11 @@ exports.getLivefeeds = async (req, res) => {
 
   res.send({
     status: "success",
-    response: { page: page, totalPages: totalPages, results: livefeeds },
+    response: {
+      page: page,
+      totalPages: Number(totalPages),
+      results: livefeeds,
+    },
   });
 };
 
