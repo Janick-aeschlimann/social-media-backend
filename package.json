@@ -16,6 +16,7 @@
     "jsonwebtoken": "^9.0.2",
     "mysql2": "^3.11.5",
     "nodemon": "^3.1.7",
-    "socket.io": "^4.8.1"
+    "socket.io": "^4.8.1",
+    "ytmusic_api_unofficial": "^2.0.8"
   }
 }

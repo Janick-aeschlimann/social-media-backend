@@ -19,6 +19,7 @@ const friendRoutes = require("./routes/friendRoutes.js");
 const requestRoutes = require("./routes/requestRoutes.js");
 const livefeedRoutes = require("./routes/livefeedRoutes.js");
 const chatRoutes = require("./routes/chatRoutes.js");
+const songsRoutes = require("./routes/songsRoutes.js");
 
 app.use("/auth", authRoutes);
 app.use("/posts", postRoutes);
@@ -27,5 +28,6 @@ app.use("/friends", friendRoutes);
 app.use("/requests", requestRoutes);
 app.use("/livefeeds", livefeedRoutes);
 app.use("/chats", chatRoutes);
+app.use("/songs", songsRoutes);
 
 module.exports = app;
