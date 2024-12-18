@@ -34,9 +34,10 @@ exports.joinLivefeed = async (data, socket, io) => {
 
     socket.join(livefeedId);
 
-    if (!activeLivefeeds.includes(livefeedId)) {
-      activeLivefeeds.push({ livefeedId: livefeedId, phase: "idle" });
-      activateLivefeed(livefeedId);
+    if (
+      !activeLivefeeds.find((livefeed) => livefeed.livefeedId == livefeedId)
+    ) {
+      activeLivefeeds.push({ livefeedId: livefeedId, phase: "request" });
     }
 
     const messages = await db.query(
@@ -73,23 +74,42 @@ exports.joinLivefeed = async (data, socket, io) => {
 };
 
 const activateLivefeed = async (livefeedId) => {
+  cycle(livefeedId);
+};
+
+const cycle = async (livefeedId) => {
   const livefeed = activeLivefeeds.find(
     (livefeed) => livefeed.livefeedId == livefeedId
   );
-  if (livefeed) {
-    livefeed.phase = "request";
-    console.log("Request phase");
-
-    setTimeout(() => {
-      livefeed.phase = "voting";
-      console.log("Voting phase");
-
-      setTimeout(() => {
-        livefeed.phase = "playing";
-        console.log("Playing phase");
-      }, 1000 * 10);
+  livefeed.phase = "request";
+  console.log("Request phase");
+  setTimeout(async () => {
+    const requestedSongs = await db.query(
+      "SELECT * FROM requestedSongs WHERE livefeedId = ?",
+      [livefeedId]
+    );
+    if (requestedSongs.length == 0) {
+      console.log("No songs requested");
+      activeLivefeeds.filter((livefeed) => livefeed.livefeedId != livefeedId);
+      return;
+    }
+    livefeed.phase = "voting";
+    console.log("Voting phase");
+    setTimeout(async () => {
+      const playingSong = await countVotes(livefeedId);
+      livefeed.phase = "playing";
+      console.log("Playing phase");
+      //if users are still in livefeed after song is played, cycle again else remove livefeed from activeLivefeeds
     }, 1000 * 10);
-  }
+  }, 1000 * 10);
+};
+
+const countVotes = async (livefeedId) => {
+  const votes = await db.query(
+    "SELECT requestedSongId, COUNT(*) as voteCount FROM votes WHERE livefeedId = ? GROUP BY requestedSongId ORDER BY voteCount DESC LIMIT 1",
+    [livefeedId]
+  );
+  return votes[0];
 };
 
 const handleLivefeedVoteSong = async (data, socket, io) => {
@@ -101,7 +121,7 @@ const handleLivefeedVoteSong = async (data, socket, io) => {
     [senderId]
   );
 
-  const livefeedId = socket.livefeedId;
+  const livefeedId = activeUsers[0].livefeedId;
 
   if (
     activeLivefeeds.find((livefeed) => livefeed.livefeedId == livefeedId)
@@ -131,6 +151,11 @@ const handleLivefeedVoteSong = async (data, socket, io) => {
         requestedSongId,
         vote[0].voteId,
       ]);
+      const votes = await db.query(
+        "SELECT requestedSongId, COUNT(*) FROM votes WHERE livefeedId = ? GROUP BY requestedSongId",
+        [livefeedId]
+      );
+      socket.emit("livefeed_vote_song", { votes: votes });
     } else {
       await db.insert("votes", {
         userId: senderId,
