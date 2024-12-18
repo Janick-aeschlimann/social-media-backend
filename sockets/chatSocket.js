@@ -23,7 +23,7 @@ exports.handleChatMessage = async (data, socket, io) => {
     if (socketId[0]) {
       io.to(socketId[0].socketId).emit("chat_message", {
         senderId: senderId,
-        recieverId: data.userId,
+        recieverId: Number(data.userId),
         message: message,
       });
     } else {
