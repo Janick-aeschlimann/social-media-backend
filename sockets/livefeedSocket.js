@@ -99,7 +99,7 @@ const handleLivefeedMessage = async (data, socket, io) => {
   });
 };
 
-exports.leaveLivefeed = async (data, socket, io) => {
+exports.leaveLivefeed = async (socket, io) => {
   const livefeed = await db.query(
     "SELECT * FROM activeUsers WHERE userId = ?",
     [socket.user.userId]
