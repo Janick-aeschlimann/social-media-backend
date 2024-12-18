@@ -178,7 +178,7 @@ const countVotes = async (livefeedId) => {
     return votes[0];
   } else {
     const random = await db.query(
-      "SELECT requestedSongId FROM requestedSongs WHERE livefeedId = ? ORDER BY RAND() LIMIT 1",
+      "SELECT * FROM requestedSongs WHERE livefeedId = ? LIMIT 1",
       [livefeedId]
     );
     return random[0];
