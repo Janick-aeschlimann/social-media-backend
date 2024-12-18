@@ -31,8 +31,9 @@ exports.joinLivefeed = async (data, socket, io) => {
       livefeedId,
       socket.user.userId,
     ]);
+
     socket.join(livefeedId);
-    socket.livefeedId = livefeedId;
+    livefeedId = livefeedId;
 
     console.log(livefeedId);
 
@@ -97,20 +98,21 @@ const activateLivefeed = async (livefeedId) => {
 const handleLivefeedVoteSong = async (data, socket, io) => {
   const senderId = socket.user.userId;
   const requestedSongId = data.requestedSongId;
+  const livefeedId = livefeedId;
+
+  console.log(livefeedId);
 
   if (
-    activeLivefeeds.find((livefeed) => livefeed.livefeedId == socket.livefeedId)
+    activeLivefeeds.find((livefeed) => livefeed.livefeedId == livefeedId)
       .phase != "voting"
   ) {
     socket.emit("error", { status: "error", response: "Not in voting phase" });
     return;
   }
 
-  console.log(requestedSongId, socket.livefeedId);
-
   const requestedSong = await db.query(
     "SELECT * FROM requestedSongs WHERE requestedSongId = ? AND livefeedId = ?",
-    [requestedSongId, socket.livefeedId]
+    [requestedSongId, livefeedId]
   );
 
   console.log(requestedSong);
@@ -118,7 +120,7 @@ const handleLivefeedVoteSong = async (data, socket, io) => {
   if (requestedSong[0]) {
     const vote = await db.query(
       "SELECT * FROM votes WHERE userId = ? AND livefeedId = ?",
-      [senderId, socket.livefeedId]
+      [senderId, livefeedId]
     );
 
     if (vote[0]) {
@@ -129,7 +131,7 @@ const handleLivefeedVoteSong = async (data, socket, io) => {
     } else {
       await db.insert("votes", {
         userId: senderId,
-        livefeedId: socket.livefeedId,
+        livefeedId: livefeedId,
         requestedSongId: requestedSongId,
       });
     }
@@ -142,9 +144,12 @@ const handleLivefeedVoteSong = async (data, socket, io) => {
 const handleLivefeedRequestSong = async (data, socket, io) => {
   const senderId = socket.user.userId;
   const videoId = data.videoId;
+  const livefeedId = socket.likefeedId;
+
+  console.log(livefeedId);
 
   if (
-    activeLivefeeds.find((livefeed) => livefeed.livefeedId == socket.livefeedId)
+    activeLivefeeds.find((livefeed) => livefeed.livefeedId == livefeedId)
       .phase != "request"
   ) {
     socket.emit("error", { status: "error", response: "Not in request phase" });
@@ -153,7 +158,7 @@ const handleLivefeedRequestSong = async (data, socket, io) => {
 
   const requestedSongs = await db.query(
     "SELECT * FROM requestedSongs WHERE livefeedId = ? AND videoId = ?",
-    [socket.livefeedId, videoId]
+    [livefeedId, videoId]
   );
 
   if (requestedSongs[0]) {
@@ -173,11 +178,11 @@ const handleLivefeedRequestSong = async (data, socket, io) => {
       title: song.title,
       artist: song.artist,
       duration: song.duration,
-      livefeedId: socket.livefeedId,
+      livefeedId: livefeedId,
       thumbnailUrl: song.thumbnailUrl,
     });
 
-    io.to(socket.livefeedId).emit("livefeed_request_song", {
+    io.to(livefeedId).emit("livefeed_request_song", {
       userId: senderId,
       videoId: videoId,
       title: song.title,
