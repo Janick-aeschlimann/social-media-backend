@@ -116,7 +116,5 @@ exports.leaveLivefeed = async (socket, io) => {
   ]);
 
   socket.leave(livefeed[0].livefeedId);
-  socket.off("livefeed_message", (data) =>
-    handleLivefeedMessage(data, socket, io)
-  );
+  socket.off("livefeed_message");
 };
