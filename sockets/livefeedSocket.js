@@ -65,6 +65,14 @@ const handleLivefeedRequestSong = async (data, socket, io) => {
   const senderId = socket.user.userId;
   const videoId = data.videoId;
 
+  const requestedSongs = await db.query(
+    "SELECT * FROM requestedSongs WHERE AND livefeedId = ? AND videoId = ?",
+    [socket.livefeedId, videoId]
+  );
+
+  if (requestedSongs[0]) {
+  }
+
   const song = await musicController.getSong(videoId);
 
   if (song != null) {
@@ -82,6 +90,9 @@ const handleLivefeedRequestSong = async (data, socket, io) => {
       userId: senderId,
       videoId: videoId,
       title: song.title,
+      artist: song.artist,
+      duration: song.duration,
+      thumbnailUrl: song.thumbnailUrl,
     });
   } else {
     socket.emit("error", { status: "error", response: "Song not found" });
