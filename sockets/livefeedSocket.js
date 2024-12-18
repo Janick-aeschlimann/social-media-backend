@@ -111,14 +111,17 @@ const cycle = async (livefeedId) => {
         ]);
       }
 
-      console.log(playingSong);
+      const song = await db.query(
+        "SELECT * FROM requestedSongs WHERE requestedSongId = ?",
+        [playingSong.requestedSongId]
+      );
 
       const response = await db.insert("songs", {
-        videoId: playingSong.videoId,
-        title: playingSong.title,
-        artist: playingSong.artist,
-        duration: playingSong.duration,
-        thumbnailUrl: playingSong.thumbnailUrl,
+        videoId: song[0].videoId,
+        title: song[0].title,
+        artist: song[0].artist,
+        duration: song[0].duration,
+        thumbnailUrl: song[0].thumbnailUrl,
       });
       db.query("DELETE FROM votes WHERE livefeedId = ?", [livefeedId]);
       db.query("DELETE FROM requestedSongs WHERE livefeedId = ?", [livefeedId]);
