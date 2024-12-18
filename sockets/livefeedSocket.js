@@ -33,9 +33,6 @@ exports.joinLivefeed = async (data, socket, io) => {
     ]);
 
     socket.join(livefeedId);
-    socket.livefeedId = livefeedId;
-
-    console.log(livefeedId);
 
     if (!activeLivefeeds.includes(livefeedId)) {
       activeLivefeeds.push({ livefeedId: livefeedId, phase: "idle" });
@@ -98,9 +95,13 @@ const activateLivefeed = async (livefeedId) => {
 const handleLivefeedVoteSong = async (data, socket, io) => {
   const senderId = socket.user.userId;
   const requestedSongId = data.requestedSongId;
-  const livefeedId = livefeedId;
 
-  console.log(livefeedId);
+  const activeUsers = await db.query(
+    "SELECT * FROM activeUsers WHERE userId = ?",
+    [senderId]
+  );
+
+  const livefeedId = activeUsers[0].livefeedId;
 
   if (
     activeLivefeeds.find((livefeed) => livefeed.livefeedId == livefeedId)
@@ -144,9 +145,13 @@ const handleLivefeedVoteSong = async (data, socket, io) => {
 const handleLivefeedRequestSong = async (data, socket, io) => {
   const senderId = socket.user.userId;
   const videoId = data.videoId;
-  const livefeedId = socket.likefeedId;
 
-  console.log(livefeedId);
+  const activeUsers = await db.query(
+    "SELECT * FROM activeUsers WHERE userId = ?",
+    [senderId]
+  );
+
+  const livefeedId = activeUsers[0].livefeedId;
 
   if (
     activeLivefeeds.find((livefeed) => livefeed.livefeedId == livefeedId)
