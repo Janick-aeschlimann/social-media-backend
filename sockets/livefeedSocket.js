@@ -68,7 +68,14 @@ const handleLivefeedRequestSong = async (data, socket, io) => {
   const song = await musicController.getSong(videoId);
 
   if (song != null) {
-    await db.insert("requestedSongs", { userId: senderId, videoId: videoId });
+    await db.insert("requestedSongs", {
+      userId: senderId,
+      videoId: videoId,
+      title: song.title,
+      artist: song.artist,
+      duration: song.duration,
+      livefeedId: socket.livefeedId,
+    });
 
     io.to(socket.livefeedId).emit("livefeed_request_song", {
       userId: senderId,
