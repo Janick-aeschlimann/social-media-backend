@@ -1,6 +1,9 @@
 const db = require("../db");
 const musicController = require("../controllers/musicController");
 
+const votingTime = 10;
+const requestTime = 10;
+
 const activeLivefeeds = [];
 
 exports.joinLivefeed = async (data, socket, io) => {
@@ -159,9 +162,9 @@ const cycle = async (livefeedId) => {
             livefeedId,
           ]);
         }
-      }, 1000 * (song[0].duration - 20));
-    }, 1000 * 10);
-  }, 1000 * 10);
+      }, 1000 * (song[0].duration - (requestTime + votingTime)));
+    }, 1000 * votingTime);
+  }, 1000 * requestTime);
 };
 
 const countVotes = async (livefeedId) => {
@@ -169,7 +172,15 @@ const countVotes = async (livefeedId) => {
     "SELECT requestedSongId, COUNT(*) as voteCount FROM votes WHERE livefeedId = ? GROUP BY requestedSongId ORDER BY voteCount DESC LIMIT 1",
     [livefeedId]
   );
-  return votes[0];
+  if (votes[0]) {
+    return votes[0];
+  } else {
+    const random = await db.query(
+      "SELECT requestedSongId FROM requestedSongs WHERE livefeedId = ? ORDER BY RAND() LIMIT 1",
+      [livefeedId]
+    );
+    return random[0];
+  }
 };
 
 const handleLivefeedVoteSong = async (data, socket, io) => {
