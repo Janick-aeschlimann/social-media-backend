@@ -424,19 +424,27 @@ exports.leaveLivefeed = async (socket, io) => {
     "SELECT * FROM activeUsers WHERE userId = ?",
     [socket.user.userId]
   );
-  if (livefeed[0].livefeedId == null) {
+  if (livefeed[0]) {
+    if (livefeed[0].livefeedId == null) {
+      socket.emit("error", {
+        status: "error",
+        response: "You are not in a livefeed",
+      });
+      return;
+    }
+    await db.query(
+      "UPDATE activeUsers SET livefeedId = NULL WHERE userId = ?",
+      [socket.user.userId]
+    );
+
+    socket.leave(livefeed[0].livefeedId);
+    socket.removeAllListeners("livefeed_message");
+    socket.removeAllListeners("livefeed_request_song");
+    socket.removeAllListeners("livefeed_vote_song");
+  } else {
     socket.emit("error", {
       status: "error",
       response: "You are not in a livefeed",
     });
-    return;
   }
-  await db.query("UPDATE activeUsers SET livefeedId = NULL WHERE userId = ?", [
-    socket.user.userId,
-  ]);
-
-  socket.leave(livefeed[0].livefeedId);
-  socket.removeAllListeners("livefeed_message");
-  socket.removeAllListeners("livefeed_request_song");
-  socket.removeAllListeners("livefeed_vote_song");
 };
