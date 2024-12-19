@@ -1,8 +1,8 @@
 const db = require("../db");
 const musicController = require("../controllers/musicController");
 
-const votingTime = 60;
-const requestTime = 60;
+const votingTime = 30;
+const requestTime = 30;
 
 const activeLivefeeds = [];
 
