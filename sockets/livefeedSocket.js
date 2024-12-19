@@ -4,7 +4,7 @@ const musicController = require("../controllers/musicController");
 const votingTime = 30;
 const requestTime = 30;
 
-const activeLivefeeds = [];
+var activeLivefeeds = [];
 
 exports.joinLivefeed = async (data, socket, io) => {
   const livefeedId = data.livefeedId;
