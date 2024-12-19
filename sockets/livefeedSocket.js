@@ -286,7 +286,7 @@ const handleLivefeedVoteSong = async (data, socket, io) => {
         [requestedSongId]
       );
 
-      socket.emit("livefeed_vote_song", {
+      io.to(livefeedId).emit("livefeed_vote_song", {
         votes: votes,
       });
     }
