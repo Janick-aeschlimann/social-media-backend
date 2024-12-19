@@ -282,7 +282,7 @@ const handleLivefeedVoteSong = async (data, socket, io) => {
       });
 
       const votes = await db.query(
-        "SELECT requestSongId, COUNT(*) as voteCount FROM votes WHERE requestedSongId = ? GROUP BY requestedSongId",
+        "SELECT requestedSongId, COUNT(*) as voteCount FROM votes WHERE requestedSongId = ? GROUP BY requestedSongId",
         [requestedSongId]
       );
 
