@@ -154,6 +154,22 @@ exports.getPostsFromUser = async (req, res) => {
         const user = await db.query("SELECT * FROM users WHERE userId = ?", [
           post.userId,
         ]);
+        const likes = await db.query(
+          "SELECT COUNT(ratingId) as likes FROM ratings WHERE postId = ? AND rating = 1",
+          [post.postId]
+        );
+        const dislikes = await db.query(
+          "SELECT COUNT(ratingId) as dislikes FROM ratings WHERE postId = ? AND rating = 0",
+          [post.postId]
+        );
+        const rating = await db.query(
+          "SELECT rating FROM ratings WHERE postId = ? AND userId = ?",
+          [post.postId, req.user.userId]
+        );
+        const saves = await db.query(
+          "SELECT * FROM saves WHERE postId = ? AND userId = ?",
+          [post.postId, req.user.userId]
+        );
         return {
           postId: post.postId,
           user: {
@@ -162,6 +178,10 @@ exports.getPostsFromUser = async (req, res) => {
             displayName: user[0].displayName,
           },
           content: post.content,
+          likes: likes[0].likes,
+          dislikes: dislikes[0].dislikes,
+          rating: rating[0] ? rating[0].rating : -1,
+          saved: saves[0] ? true : false,
           medialinks: medialinks,
         };
       })
@@ -209,7 +229,22 @@ exports.getLikesFromUser = async (req, res) => {
             post.userId,
           ]);
 
-          console.log(user);
+          const likes = await db.query(
+            "SELECT COUNT(ratingId) as likes FROM ratings WHERE postId = ? AND rating = 1",
+            [post.postId]
+          );
+          const dislikes = await db.query(
+            "SELECT COUNT(ratingId) as dislikes FROM ratings WHERE postId = ? AND rating = 0",
+            [post.postId]
+          );
+          const rating = await db.query(
+            "SELECT rating FROM ratings WHERE postId = ? AND userId = ?",
+            [post.postId, req.user.userId]
+          );
+          const saves = await db.query(
+            "SELECT * FROM saves WHERE postId = ? AND userId = ?",
+            [post.postId, req.user.userId]
+          );
 
           return {
             postId: post.postId,
@@ -219,6 +254,10 @@ exports.getLikesFromUser = async (req, res) => {
               displayName: user[0].displayName,
             },
             content: post.content,
+            likes: likes[0].likes,
+            dislikes: dislikes[0].dislikes,
+            rating: rating[0] ? rating[0].rating : -1,
+            saved: saves[0] ? true : false,
             medialinks: medialinks,
           };
         })
@@ -280,7 +319,22 @@ exports.getSavesFromUser = async (req, res) => {
             post.userId,
           ]);
 
-          console.log(user);
+          const likes = await db.query(
+            "SELECT COUNT(ratingId) as likes FROM ratings WHERE postId = ? AND rating = 1",
+            [post.postId]
+          );
+          const dislikes = await db.query(
+            "SELECT COUNT(ratingId) as dislikes FROM ratings WHERE postId = ? AND rating = 0",
+            [post.postId]
+          );
+          const rating = await db.query(
+            "SELECT rating FROM ratings WHERE postId = ? AND userId = ?",
+            [post.postId, req.user.userId]
+          );
+          const saves = await db.query(
+            "SELECT * FROM saves WHERE postId = ? AND userId = ?",
+            [post.postId, req.user.userId]
+          );
 
           return {
             postId: post.postId,
@@ -290,6 +344,10 @@ exports.getSavesFromUser = async (req, res) => {
               displayName: user[0].displayName,
             },
             content: post.content,
+            likes: likes[0].likes,
+            dislikes: dislikes[0].dislikes,
+            rating: rating[0] ? rating[0].rating : -1,
+            saved: saves[0] ? true : false,
             medialinks: medialinks,
           };
         })
