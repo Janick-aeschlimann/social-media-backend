@@ -53,6 +53,13 @@ exports.joinLivefeed = async (data, socket, io) => {
       [livefeedId]
     );
 
+    const votes = await db.query(
+      "SELECT * FROM votes WHERE livefeedId = ? AND userId = ?",
+      [livefeedId, socket.user.userId]
+    );
+
+    const hasVoted = votes[0] ? true : false;
+
     messages = await Promise.all(
       messages.map(async (message) => {
         const user = await db.query("SELECT * FROM users WHERE userId = ?", [
@@ -67,6 +74,7 @@ exports.joinLivefeed = async (data, socket, io) => {
           livefeedMessageId: message.livefeedMessageId,
           message: message.message,
           date: message.date,
+          hasVoted: hasVoted,
         };
       })
     );
@@ -265,20 +273,21 @@ const handleLivefeedVoteSong = async (data, socket, io) => {
     );
 
     if (vote[0]) {
-      await db.query("UPDATE votes SET requestedSongId = ? WHERE voteId = ?", [
-        requestedSongId,
-        vote[0].voteId,
-      ]);
-      const votes = await db.query(
-        "SELECT requestedSongId, COUNT(*) FROM votes WHERE livefeedId = ? GROUP BY requestedSongId",
-        [livefeedId]
-      );
-      socket.emit("livefeed_vote_song", { votes: votes });
+      socket.emit("error", { status: "error", response: "Already voted" });
     } else {
       await db.insert("votes", {
         userId: senderId,
         livefeedId: livefeedId,
         requestedSongId: requestedSongId,
+      });
+
+      const votes = await db.query(
+        "SELECT COUNT(*) as voteCount FROM votes WHERE requestedSongId = ?",
+        [requestedSongId]
+      );
+
+      socket.emit("livefeed_vote_song", {
+        votes: votes,
       });
     }
   } else {
