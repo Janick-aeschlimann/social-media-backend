@@ -74,7 +74,6 @@ exports.joinLivefeed = async (data, socket, io) => {
           livefeedMessageId: message.livefeedMessageId,
           message: message.message,
           date: message.date,
-          hasVoted: hasVoted,
         };
       })
     );
@@ -101,6 +100,7 @@ exports.joinLivefeed = async (data, socket, io) => {
         activeLivefeeds.find((livefeed) => livefeed.livefeedId === livefeedId)
           ?.nextPhaseStart || new Date().getTime(),
       song: song[0],
+      hasVoted: hasVoted,
     });
 
     socket.removeAllListeners("livefeed_message");
@@ -282,7 +282,7 @@ const handleLivefeedVoteSong = async (data, socket, io) => {
       });
 
       const votes = await db.query(
-        "SELECT COUNT(*) as voteCount FROM votes WHERE requestedSongId = ?",
+        "SELECT requestSongId, COUNT(*) as voteCount FROM votes WHERE requestedSongId = ? GROUP BY requestedSongId",
         [requestedSongId]
       );
 
