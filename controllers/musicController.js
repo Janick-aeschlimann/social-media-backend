@@ -8,7 +8,7 @@ exports.searchSongs = async (req, res) => {
   res.send(
     results.content.map((song) => ({
       title: song.title,
-      artist: song.artists[0].name,
+      artist: song.artists[0]?.name || "Unknown",
       videoId: song.id,
       thumbnail: song.thumbnails[1].url,
       duration: song.duration.duration,
@@ -25,7 +25,7 @@ exports.getSong = async (videoId) => {
 
     return {
       title: song.title,
-      artist: song.artists[0].name,
+      artist: song.artists[0]?.name || "Unknown",
       videoId: song.id,
       thumbnailUrl: song.thumbnails[1].url,
       duration: song.duration.duration,

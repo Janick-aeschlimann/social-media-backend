@@ -1,8 +1,8 @@
 const db = require("../db");
 const musicController = require("../controllers/musicController");
 
-const votingTime = 10;
-const requestTime = 10;
+const votingTime = 60;
+const requestTime = 60;
 
 const activeLivefeeds = [];
 
@@ -40,18 +40,47 @@ exports.joinLivefeed = async (data, socket, io) => {
     if (
       !activeLivefeeds.some((livefeed) => livefeed.livefeedId === livefeedId)
     ) {
-      activeLivefeeds.push({ livefeedId: livefeedId, phase: "idle" });
+      activeLivefeeds.push({
+        livefeedId: livefeedId,
+        phase: "idle",
+        nextPhaseStart: new Date().getTime(),
+      });
       activateLivefeed(livefeedId, io);
     }
 
-    const messages = await db.query(
+    var messages = await db.query(
       "SELECT * FROM livefeedMessages WHERE livefeedId = ? ORDER BY date DESC LIMIT 20",
       [livefeedId]
     );
+
+    messages = await Promise.all(
+      messages.map(async (message) => {
+        const user = await db.query("SELECT * FROM users WHERE userId = ?", [
+          message.userId,
+        ]);
+        return {
+          user: {
+            userId: user[0].userId,
+            username: user[0].username,
+            displayName: user[0].displayName,
+          },
+          livefeedMessageId: message.livefeedMessageId,
+          message: message.message,
+          date: message.date,
+        };
+      })
+    );
+
     const requests = await db.query(
       "SELECT * FROM requestedSongs WHERE livefeedId = ?",
       [livefeedId]
     );
+
+    const song = await db.query("SELECT * FROM songs WHERE songId = ?", [
+      livefeeds[0].songId,
+    ]);
+
+    console.log(song);
 
     socket.emit("livefeed_init_data", {
       messages: messages,
@@ -60,9 +89,15 @@ exports.joinLivefeed = async (data, socket, io) => {
       phase:
         activeLivefeeds.find((livefeed) => livefeed.livefeedId === livefeedId)
           ?.phase || "idle",
+      nextPhaseStart:
+        activeLivefeeds.find((livefeed) => livefeed.livefeedId === livefeedId)
+          ?.nextPhaseStart || new Date().getTime(),
+      song: song[0],
     });
 
     socket.removeAllListeners("livefeed_message");
+    socket.removeAllListeners("livefeed_request_song");
+    socket.removeAllListeners("livefeed_vote_song");
 
     socket.on("livefeed_message", (data) =>
       handleLivefeedMessage(data, socket, io)
@@ -89,6 +124,7 @@ const cycle = async (livefeedId, io) => {
     (livefeed) => livefeed.livefeedId == livefeedId
   );
   livefeed.phase = "request";
+  livefeed.nextPhaseStart = new Date().getTime() + requestTime * 1000;
   console.log("Request phase");
   //request phase
   io.to(livefeedId).emit("livefeed_request_phase", {
@@ -104,6 +140,9 @@ const cycle = async (livefeedId, io) => {
     if (requestedSongs.length == 0) {
       console.log("No songs requested");
       activeLivefeeds.filter((livefeed) => livefeed.livefeedId != livefeedId);
+      db.query("UPDATE livefeeds SET songId = NULL WHERE livefeedId = ?", [
+        livefeedId,
+      ]);
       cycle(livefeedId, io);
       return;
     }
@@ -112,19 +151,11 @@ const cycle = async (livefeedId, io) => {
       playingTime: new Date().getTime() + votingTime * 1000,
     });
     livefeed.phase = "voting";
+    livefeed.nextPhaseStart = new Date().getTime() + votingTime * 1000;
     console.log("Voting phase");
     setTimeout(async () => {
       //playing phase
       const playingSong = await countVotes(livefeedId);
-      const songId = await db.query(
-        "SELECT songId FROM livefeeds WHERE livefeedId = ?",
-        [livefeedId]
-      );
-      if (songId[0] && songId[0].songId) {
-        await db.query("DELETE FROM songs WHERE songId = ?", [
-          songId[0].songId,
-        ]);
-      }
 
       console.log(playingSong);
 
@@ -140,20 +171,28 @@ const cycle = async (livefeedId, io) => {
         duration: song[0].duration,
         thumbnailUrl: song[0].thumbnailUrl,
       });
+      console.log(response);
+
+      const songInfo = await db.query("SELECT * FROM songs WHERE songId = ?", [
+        response[0].insertId,
+      ]);
       db.query("DELETE FROM votes WHERE livefeedId = ?", [livefeedId]);
       db.query("DELETE FROM requestedSongs WHERE livefeedId = ?", [livefeedId]);
       db.query("UPDATE livefeeds SET songId = ? WHERE livefeedId = ?", [
-        response.insertId,
+        songInfo[0].songId,
         livefeedId,
       ]);
       io.to(livefeedId).emit("livefeed_play_song", {
-        song: song[0],
+        song: songInfo[0],
         nextRequest:
           new Date().getTime() +
-          (song[0].duration - (requestTime + votingTime)) * 1000,
+          (songInfo[0].duration - (requestTime + votingTime)) * 1000,
       });
       console.log("Playing phase", song[0]);
       livefeed.phase = "playing";
+      livefeed.nextPhaseStart =
+        new Date().getTime() +
+        (song[0].duration - (requestTime + votingTime)) * 1000;
       setTimeout(async () => {
         //song finished
         console.log("song almoast finished -> next cycle");
@@ -163,18 +202,9 @@ const cycle = async (livefeedId, io) => {
           cycle(livefeedId, io);
           return;
         } else {
-          activeLivefeeds.filter(
+          activeLivefeeds = activeLivefeeds.filter(
             (livefeed) => livefeed.livefeedId != livefeedId
           );
-          const songId = await db.query(
-            "SELECT songId FROM livefeeds WHERE livefeedId = ?",
-            [livefeedId]
-          );
-          if (songId[0] && songId[0].songId) {
-            await db.query("DELETE FROM songs WHERE songId = ?", [
-              songId[0].songId,
-            ]);
-          }
           db.query("UPDATE livefeeds SET songId = NULL WHERE livefeedId = ?", [
             livefeedId,
           ]);
@@ -294,7 +324,7 @@ const handleLivefeedRequestSong = async (data, socket, io) => {
   const song = await musicController.getSong(videoId);
 
   if (song != null) {
-    await db.insert("requestedSongs", {
+    const response = await db.insert("requestedSongs", {
       userId: senderId,
       videoId: videoId,
       title: song.title,
@@ -304,9 +334,12 @@ const handleLivefeedRequestSong = async (data, socket, io) => {
       thumbnailUrl: song.thumbnailUrl,
     });
 
+    console.log(response);
+
     io.to(livefeedId).emit("livefeed_request_song", {
       userId: senderId,
       videoId: videoId,
+      requestedSongId: response[0].insertId,
       title: song.title,
       artist: song.artist,
       duration: song.duration,
@@ -355,14 +388,23 @@ const handleLivefeedMessage = async (data, socket, io) => {
       return;
     }
   }
-  db.insert("livefeedMessages", {
+  const response = db.insert("livefeedMessages", {
     userId: senderId,
     livefeedId: livefeed[0].livefeedId,
     message: message,
   });
 
+  const user = await db.query("SELECT * FROM users WHERE userId = ?", [
+    senderId,
+  ]);
+
   io.to(livefeed[0].livefeedId).emit("livefeed_message", {
-    userId: senderId,
+    user: {
+      userId: user[0].userId,
+      username: user[0].username,
+      displayName: user[0].displayName,
+    },
+    livefeedMessageId: response.insertId,
     message: message,
     date: new Date(),
   });
@@ -386,4 +428,6 @@ exports.leaveLivefeed = async (socket, io) => {
 
   socket.leave(livefeed[0].livefeedId);
   socket.removeAllListeners("livefeed_message");
+  socket.removeAllListeners("livefeed_request_song");
+  socket.removeAllListeners("livefeed_vote_song");
 };
